@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OFP Pharmacology</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root{
+  --accent:#1D9E75;--accent-dark:#085041;--navy:#1a2744;
+  --bg:#f7f8f6;--surface:#fff;--surface2:#f0f2f0;
+  --border:rgba(0,0,0,0.09);--border-strong:rgba(0,0,0,0.16);
+  --text:#1a1f1a;--text-mid:#4a5549;--text-muted:#8a9488;
+  --danger-bg:#fff0f0;--danger:#b91c1c;--danger-border:rgba(185,28,28,0.2);
+  --r:10px;--rs:6px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#0f1410;--surface:#181e18;--surface2:#222922;
+  --border:rgba(255,255,255,0.07);--border-strong:rgba(255,255,255,0.15);
+  --text:#e2ebe2;--text-mid:#8fa88f;--text-muted:#526352;
+  --danger-bg:#2d0f0f;--danger:#f87171;--danger-border:rgba(248,113,113,0.25);
+}}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+
+/* ── LOGIN ── */
+.login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem}
+.login-card{background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r);padding:2.5rem;width:min(380px,100%);box-shadow:0 4px 24px rgba(0,0,0,.1)}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:2rem}
+.login-mark{width:40px;height:40px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px}
+.login-name{font-size:17px;font-weight:500}
+.login-sub{font-size:11px;color:var(--text-muted);display:block}
+.lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:block;margin-bottom:5px}
+.inp{width:100%;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--rs);padding:9px 12px;font-family:inherit;font-size:13px;color:var(--text);outline:none;transition:border-color .15s;margin-bottom:12px}
+.inp:focus{border-color:var(--accent)}
+.err{color:var(--danger);font-size:12px;margin-bottom:10px;display:none;align-items:center;gap:5px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:var(--rs);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff;justify-content:center;width:100%;padding:10px}.btn-primary:hover{opacity:.9}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn-plain{background:var(--surface);color:var(--text-mid);border:1px solid var(--border-strong)}.btn-plain:hover{background:var(--surface2)}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-border)}.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-teal{background:var(--accent-dark);color:#9FE1CB;border:none}.btn-teal:hover{opacity:.85}
+
+/* ── LAYOUT ── */
+.app{display:none;flex-direction:column;min-height:100vh}
+.topbar{background:var(--navy);height:54px;display:flex;align-items:center;padding:0 1.25rem;gap:1rem;position:sticky;top:0;z-index:40;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.topbar-logo{display:flex;align-items:center;gap:9px;flex-shrink:0}
+.topbar-mark{width:28px;height:28px;background:var(--accent);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+.topbar-name{font-size:14px;font-weight:500;color:#fff}
+.topbar-sub{font-size:10px;color:rgba(255,255,255,.4);display:block;line-height:1}
+.topbar-tabs{display:flex;gap:2px;margin-left:1rem}
+.ttab{font-size:12px;font-weight:500;padding:5px 12px;border-radius:20px;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.55);transition:all .15s}
+.ttab:hover{color:#fff;background:rgba(255,255,255,.1)}
+.ttab.active{background:rgba(255,255,255,.15);color:#fff}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.pill{font-size:11px;color:rgba(255,255,255,.5);background:rgba(255,255,255,.1);padding:3px 10px;border-radius:20px}
+.body{flex:1;padding:1.25rem;max-width:1200px;margin:0 auto;width:100%}
+
+/* ── TABS ── */
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+/* ── DRUGS TAB ── */
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.search-wrap{flex:1;min-width:180px;position:relative}
+.search-wrap input{width:100%;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--rs);padding:7px 12px 7px 34px;font-family:inherit;font-size:13px;color:var(--text);outline:none;transition:border-color .15s}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:15px;pointer-events:none}
+.fsel{background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--rs);padding:7px 10px;font-family:inherit;font-size:13px;color:var(--text);outline:none;cursor:pointer}
+.data-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.data-row-label{font-size:12px;color:var(--text-muted);font-weight:500}
+
+.dtable{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.dth{display:grid;grid-template-columns:2fr 1.1fr 2fr 110px;background:var(--surface2);border-bottom:1px solid var(--border-strong)}
+.dth span{padding:9px 13px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted)}
+.drow{display:grid;grid-template-columns:2fr 1.1fr 2fr 110px;border-bottom:1px solid var(--border);align-items:center;transition:background .12s}
+.drow:last-child{border-bottom:none}
+.drow:hover{background:var(--surface2)}
+.dtd{padding:9px 13px;font-size:13px}
+.dn{font-weight:500}.dg{font-size:11px;color:var(--text-muted);font-style:italic;margin-top:1px}
+.cbadge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--surface2);color:var(--text-mid);border:1px solid var(--border-strong)}
+.dxprev{font-size:11px;color:var(--text-muted);line-height:1.4}
+.row-acts{display:flex;gap:4px}
+.empty{text-align:center;padding:3rem;color:var(--text-muted)}
+.empty i{font-size:36px;display:block;margin-bottom:10px}
+
+/* ── SLIDE PANEL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:none;backdrop-filter:blur(2px)}
+.overlay.on{display:block}
+.panel{position:fixed;top:0;right:0;bottom:0;width:min(660px,100vw);background:var(--surface);border-left:1px solid var(--border-strong);z-index:101;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.panel.on{transform:translateX(0)}
+.panel-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.panel-title{font-size:15px;font-weight:500}
+.panel-close{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:20px;line-height:1}
+.panel-body{flex:1;overflow-y:auto;padding:1.25rem}
+.panel-foot{padding:.9rem 1.25rem;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0}
+
+/* ── FORM ── */
+.fsect{font-size:10px;font-weight:700;color:var(--accent);margin:16px 0 10px;padding-bottom:5px;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.07em}
+.fsect:first-child{margin-top:0}
+.fg{margin-bottom:10px}
+.fl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);display:block;margin-bottom:4px}
+.fi,.fs,.ft{width:100%;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--rs);padding:7px 10px;font-family:inherit;font-size:13px;color:var(--text);outline:none;transition:border-color .15s}
+.fi:focus,.fs:focus,.ft:focus{border-color:var(--accent)}
+.ft{resize:vertical;min-height:56px}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+
+/* ── SETTINGS TAB ── */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:700px){.settings-grid{grid-template-columns:1fr}}
+.scard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem}
+.scard-title{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.srow{display:grid;grid-template-columns:130px 1fr;gap:8px;align-items:center;margin-bottom:9px}
+.srow label{font-size:12px;color:var(--text-mid);font-weight:500}
+.srow input{background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--rs);padding:6px 10px;font-family:inherit;font-size:13px;color:var(--text);outline:none;width:100%;transition:border-color .15s}
+.srow input:focus{border-color:var(--accent)}
+.srow input[type=color]{padding:3px 6px;height:34px;cursor:pointer}
+.color-row{display:grid;grid-template-columns:130px 40px 1fr;gap:8px;align-items:center;margin-bottom:9px}
+.color-row label{font-size:12px;color:var(--text-mid);font-weight:500}
+.color-row input[type=color]{width:40px;height:34px;padding:3px 4px;border-radius:var(--rs);border:1px solid var(--border-strong);cursor:pointer;background:var(--surface2)}
+.color-row input[type=text]{background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--rs);padding:6px 10px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);outline:none;width:100%;transition:border-color .15s}
+.color-row input[type=text]:focus{border-color:var(--accent)}
+.save-bar{display:flex;gap:10px;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border)}
+.save-note{font-size:12px;color:var(--text-muted)}
+
+/* ── CONFIRM ── */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(4px)}
+.confirm-overlay.on{display:flex}
+.confirm-box{background:var(--surface);border-radius:var(--r);border:1px solid var(--border-strong);padding:1.5rem;width:min(380px,100%);box-shadow:0 4px 20px rgba(0,0,0,.15)}
+.confirm-title{font-size:15px;font-weight:500;margin-bottom:8px}
+.confirm-msg{font-size:13px;color:var(--text-mid);margin-bottom:1.25rem;line-height:1.5}
+.confirm-btns{display:flex;gap:8px;justify-content:flex-end}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--navy);color:#fff;padding:10px 16px;border-radius:var(--rs);font-size:13px;z-index:300;transform:translateY(20px);opacity:0;transition:all .25s;pointer-events:none}
+.toast.on{transform:translateY(0);opacity:1}
+.toast.ok{background:#065f46}
+.toast.bad{background:#7f1d1d}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-page" id="loginPage">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-mark"><i class="ti ti-shield-lock"></i></div>
+      <div><div class="login-name">OFP Pharmacology Admin</div><span class="login-sub">Pharmacology Reference Editor</span></div>
+    </div>
+    <label class="lbl">Password</label>
+    <input type="password" class="inp" id="pwInput" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="err" id="loginErr"><i class="ti ti-alert-circle"></i> Incorrect password</div>
+    <button class="btn btn-primary" onclick="doLogin()"><i class="ti ti-login"></i> Sign in</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <div class="topbar-mark"><i class="ti ti-pill"></i></div>
+      <div><div class="topbar-name">OFP Pharmacology</div><span class="topbar-sub">Pharmacology Reference Editor</span></div>
+    </div>
+    <div class="topbar-tabs">
+      <button class="ttab active" onclick="showTab('drugs',this)"><i class="ti ti-database"></i> Drugs</button>
+      <button class="ttab" onclick="showTab('settings',this)"><i class="ti ti-settings"></i> Settings</button>
+    </div>
+    <div class="topbar-right">
+      <span class="pill" id="drugCount">0 drugs</span>
+      <a href="index.html" class="btn btn-plain btn-sm" style="color:var(--text-mid)"><i class="ti ti-external-link"></i> View site</a>
+      <button class="btn btn-plain btn-sm" onclick="doLogout()"><i class="ti ti-logout"></i> Logout</button>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- DRUGS TAB -->
+    <div class="tab-pane active" id="tab-drugs">
+      <div class="data-row">
+        <span class="data-row-label">Data:</span>
+        <button class="btn btn-plain btn-sm" onclick="exportData()"><i class="ti ti-download"></i> Export backup</button>
+        <label class="btn btn-plain btn-sm" style="cursor:pointer"><i class="ti ti-upload"></i> Import JSON<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+        <button class="btn btn-plain btn-sm" onclick="askReset()"><i class="ti ti-refresh"></i> Reset defaults</button>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap"><i class="ti ti-search"></i><input type="text" id="searchInput" placeholder="Search drugs..." oninput="renderTable()"></div>
+        <select class="fsel" id="clsFilter" onchange="renderTable()">
+          <option value="">All classes</option>
+          <option>TCA</option><option>SNRI</option><option>SSRI</option><option>Anticonvulsant</option>
+          <option>Muscle Relaxant</option><option>Benzodiazepine</option><option>Triptans</option>
+          <option>Ditan</option><option>CGRP mAb</option><option>Gepant</option>
+          <option>Botulinum Toxin</option><option>Topical</option><option>Corticosteroid</option>
+          <option>Antifungal</option><option>Antihistamine</option><option>Beta-Blocker</option>
+          <option>NSAID</option><option>Ergotamine</option><option>Opioid</option>
+          <option>IV/Infusion</option><option>Other</option>
+        </select>
+        <button class="btn btn-primary" onclick="openAdd()"><i class="ti ti-plus"></i> Add drug</button>
+      </div>
+      <div class="dtable">
+        <div class="dth"><span>Drug</span><span>Class</span><span>Diagnoses</span><span>Actions</span></div>
+        <div id="tableBody"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div class="tab-pane" id="tab-settings">
+      <div class="settings-grid">
+
+        <!-- Reference names -->
+        <div class="scard">
+          <div class="scard-title"><i class="ti ti-book"></i> Dosage reference names</div>
+          <div class="srow"><label>Reference 1</label><input id="s-ref1" placeholder="Guideline"></div>
+          <div class="srow"><label>Reference 2</label><input id="s-ref2" placeholder="Okeson"></div>
+          <div class="srow"><label>Reference 3</label><input id="s-ref3" placeholder="Clinical/Other"></div>
+        </div>
+
+        <!-- Site title -->
+        <div class="scard">
+          <div class="scard-title"><i class="ti ti-world"></i> Site title</div>
+          <div class="srow"><label>Site name</label><input id="s-sitename" placeholder="OFP Meds"></div>
+          <div class="srow"><label>Subtitle</label><input id="s-sitesub" placeholder="Orofacial Pain Board Review"></div>
+        </div>
+
+        <!-- Section headings -->
+        <div class="scard">
+          <div class="scard-title"><i class="ti ti-heading"></i> Section headings</div>
+          <div class="srow"><label>Treatment role</label><input id="s-h-lines" placeholder="Used for (by treatment line)"></div>
+          <div class="srow"><label>Mechanism</label><input id="s-h-moa" placeholder="Mechanism of action"></div>
+          <div class="srow"><label>Elimination</label><input id="s-h-elim" placeholder="Elimination / Metabolism"></div>
+          <div class="srow"><label>Dosage</label><input id="s-h-dose" placeholder="Dosage by reference"></div>
+          <div class="srow"><label>Side effects</label><input id="s-h-ae" placeholder="Side effects"></div>
+          <div class="srow"><label>Contraindications</label><input id="s-h-ci" placeholder="Absolute contraindications"></div>
+          <div class="srow"><label>Notes</label><input id="s-h-notes" placeholder="Board notes"></div>
+        </div>
+
+        <!-- Treatment line labels -->
+        <div class="scard">
+          <div class="scard-title"><i class="ti ti-tag"></i> Treatment line labels</div>
+          <div class="srow"><label>Line 1 label</label><input id="s-l1" placeholder="First-line"></div>
+          <div class="srow"><label>Line 2 label</label><input id="s-l2" placeholder="Second-line"></div>
+          <div class="srow"><label>Line 3 label</label><input id="s-l3" placeholder="Third-line"></div>
+          <div class="srow"><label>Adjunct label</label><input id="s-ladj" placeholder="Adjunct"></div>
+        </div>
+
+        <!-- Colors -->
+        <div class="scard">
+          <div class="scard-title"><i class="ti ti-palette"></i> Theme colors</div>
+          <div class="color-row"><label>Primary / Teal</label><input type="color" id="c-accent" value="#1D9E75" oninput="syncColor('c-accent','ct-accent')"><input type="text" id="ct-accent" value="#1D9E75" oninput="syncColorText('ct-accent','c-accent')"></div>
+          <div class="color-row"><label>Header / Navy</label><input type="color" id="c-navy" value="#1a2744" oninput="syncColor('c-navy','ct-navy')"><input type="text" id="ct-navy" value="#1a2744" oninput="syncColorText('ct-navy','c-navy')"></div>
+          <div class="color-row"><label>First-line tag</label><input type="color" id="c-l1" value="#14532d" oninput="syncColor('c-l1','ct-l1')"><input type="text" id="ct-l1" value="#14532d" oninput="syncColorText('ct-l1','c-l1')"></div>
+          <div class="color-row"><label>Second-line tag</label><input type="color" id="c-l2" value="#1e3a8a" oninput="syncColor('c-l2','ct-l2')"><input type="text" id="ct-l2" value="#1e3a8a" oninput="syncColorText('ct-l2','c-l2')"></div>
+          <div class="color-row"><label>Third-line tag</label><input type="color" id="c-l3" value="#4c1d95" oninput="syncColor('c-l3','ct-l3')"><input type="text" id="ct-l3" value="#4c1d95" oninput="syncColorText('ct-l3','c-l3')"></div>
+          <div class="color-row"><label>Adjunct tag</label><input type="color" id="c-ladj" value="#713f12" oninput="syncColor('c-ladj','ct-ladj')"><input type="text" id="ct-ladj" value="#713f12" oninput="syncColorText('ct-ladj','c-ladj')"></div>
+          <div class="color-row"><label>Danger / CI</label><input type="color" id="c-danger" value="#b91c1c" oninput="syncColor('c-danger','ct-danger')"><input type="text" id="ct-danger" value="#b91c1c" oninput="syncColorText('ct-danger','c-danger')"></div>
+        </div>
+
+        <!-- Password -->
+        <div class="scard">
+          <div class="scard-title"><i class="ti ti-lock"></i> Change password</div>
+          <div class="srow"><label>Current password</label><input type="password" id="s-pw-cur" placeholder="Current"></div>
+          <div class="srow"><label>New password</label><input type="password" id="s-pw-new" placeholder="New password"></div>
+          <div class="srow"><label>Confirm new</label><input type="password" id="s-pw-con" placeholder="Confirm"></div>
+          <button class="btn btn-plain btn-sm" style="margin-top:6px" onclick="changePassword()"><i class="ti ti-key"></i> Change password</button>
+        </div>
+
+      </div>
+
+      <div class="save-bar">
+        <button class="btn btn-primary" onclick="saveSettings()"><i class="ti ti-check"></i> Save all settings</button>
+        <button class="btn btn-plain btn-sm" onclick="resetSettings()"><i class="ti ti-refresh"></i> Reset to defaults</button>
+        <span class="save-note">Settings apply to your main site immediately after saving.</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DRUG EDIT PANEL -->
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+<div class="panel" id="panel">
+  <div class="panel-head">
+    <span class="panel-title" id="panelTitle">Add drug</span>
+    <button class="panel-close" onclick="closePanel()"><i class="ti ti-x"></i></button>
+  </div>
+  <div class="panel-body">
+    <div class="fsect">Identification</div>
+    <div class="fr2">
+      <div class="fg"><label class="fl">Drug name *</label><input class="fi" id="f-name"></div>
+      <div class="fg"><label class="fl">Generic name</label><input class="fi" id="f-generic"></div>
+    </div>
+    <div class="fr2">
+      <div class="fg"><label class="fl">Drug class</label>
+        <select class="fs" id="f-cls">
+          <option>TCA</option><option>SNRI</option><option>SSRI</option><option>Anticonvulsant</option>
+          <option>Muscle Relaxant</option><option>Benzodiazepine</option><option>Triptans</option>
+          <option>Ditan</option><option>CGRP mAb</option><option>Gepant</option>
+          <option>Botulinum Toxin</option><option>Topical</option><option>Corticosteroid</option>
+          <option>Antifungal</option><option>Antihistamine</option><option>Beta-Blocker</option>
+          <option>NSAID</option><option>Ergotamine</option><option>Opioid</option>
+          <option>IV/Infusion</option><option>Other</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Elimination type</label>
+        <select class="fs" id="f-elimtype">
+          <option value="hepatic">Hepatic</option><option value="renal">Renal</option>
+          <option value="local">Local / Topical</option><option value="other">Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Elimination / Metabolism detail</label><input class="fi" id="f-elim" placeholder="e.g. Hepatic (CYP2D6)"></div>
+    <div class="fg"><label class="fl">Diagnoses (comma-separated)</label><input class="fi" id="f-dx" placeholder="e.g. Trigeminal Neuralgia (TN), Migraine - Acute"></div>
+
+    <div class="fsect">Mechanism of Action</div>
+    <div class="fg"><textarea class="ft" id="f-moa" style="min-height:60px"></textarea></div>
+
+    <div class="fsect">Treatment role</div>
+    <div class="fg"><label class="fl">First-line for</label><input class="fi" id="f-l1"></div>
+    <div class="fg"><label class="fl">Second-line for</label><input class="fi" id="f-l2"></div>
+    <div class="fg"><label class="fl">Third-line for</label><input class="fi" id="f-l3"></div>
+    <div class="fg"><label class="fl">Adjunct for</label><input class="fi" id="f-ladj"></div>
+
+    <div class="fsect">Dosage — Reference 1 (Guideline)</div>
+    <div class="fr3">
+      <div class="fg"><label class="fl">Initial</label><input class="fi" id="f-dk-i"></div>
+      <div class="fg"><label class="fl">Target</label><input class="fi" id="f-dk-t"></div>
+      <div class="fg"><label class="fl">Max/day</label><input class="fi" id="f-dk-m"></div>
+    </div>
+    <div class="fg"><label class="fl">Notes</label><input class="fi" id="f-dk-n"></div>
+
+    <div class="fsect">Dosage — Reference 2 (Okeson)</div>
+    <div class="fr3">
+      <div class="fg"><label class="fl">Initial</label><input class="fi" id="f-do-i"></div>
+      <div class="fg"><label class="fl">Target</label><input class="fi" id="f-do-t"></div>
+      <div class="fg"><label class="fl">Max/day</label><input class="fi" id="f-do-m"></div>
+    </div>
+    <div class="fg"><label class="fl">Notes</label><input class="fi" id="f-do-n"></div>
+
+    <div class="fsect">Dosage — Reference 3 (Clinical/Other)</div>
+    <div class="fr3">
+      <div class="fg"><label class="fl">Initial</label><input class="fi" id="f-doth-i"></div>
+      <div class="fg"><label class="fl">Target</label><input class="fi" id="f-doth-t"></div>
+      <div class="fg"><label class="fl">Max/day</label><input class="fi" id="f-doth-m"></div>
+    </div>
+    <div class="fg"><label class="fl">Notes</label><input class="fi" id="f-doth-n"></div>
+
+    <div class="fsect">Safety</div>
+    <div class="fg"><label class="fl">Side effects</label><textarea class="ft" id="f-ae"></textarea></div>
+    <div class="fg"><label class="fl">Absolute contraindications</label><textarea class="ft" id="f-ci"></textarea></div>
+    <div class="fg"><label class="fl">Black box warning (blank if none)</label><input class="fi" id="f-bbw"></div>
+
+    <div class="fsect">Notes</div>
+    <div class="fg"><label class="fl">Board notes / Special populations / Pregnancy</label><textarea class="ft" id="f-notes"></textarea></div>
+  </div>
+  <div class="panel-foot">
+    <button class="btn btn-plain" onclick="closePanel()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveDrug()"><i class="ti ti-check"></i> Save drug</button>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle">Are you sure?</div>
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="btn btn-plain" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirmBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────
+const DRUG_KEY   = 'ofp_v7';
+const SET_KEY    = 'ofp_settings';
+const PW_KEY     = 'ofp_admin_pw';
+const DEFAULT_PW = 'Sumia1994';
+
+const DEFAULT_SETTINGS = {
+  ref1:'Guideline', ref2:'Okeson', ref3:'Clinical/Other',
+  h_lines:'Used for (by treatment line)', h_moa:'Mechanism of action',
+  h_elim:'Elimination / Metabolism', h_dose:'Dosage by reference',
+  h_ae:'Side effects', h_ci:'Absolute contraindications', h_notes:'Board notes',
+  l1:'First-line', l2:'Second-line', l3:'Third-line', ladj:'Adjunct',
+  sitename:'OFP Meds', sitesub:'Orofacial Pain Board Review',
+  c_accent:'#1D9E75', c_navy:'#1a2744',
+  c_l1:'#14532d', c_l2:'#1e3a8a', c_l3:'#4c1d95', c_ladj:'#713f12',
+  c_danger:'#b91c1c'
+};
+
+// ── AUTH ──────────────────────────────────────────────────────────────────
+function getPassword(){ return localStorage.getItem(PW_KEY) || DEFAULT_PW; }
+function doLogin(){
+  const pw = document.getElementById('pwInput').value;
+  if(pw === getPassword()){
+    sessionStorage.setItem('ofp_auth','1');
+    document.getElementById('loginPage').style.display='none';
+    document.getElementById('app').style.display='flex';
+    loadDrugs(); loadSettingsUI();
+  } else {
+    document.getElementById('loginErr').style.display='flex';
+    document.getElementById('pwInput').value='';
+    document.getElementById('pwInput').focus();
+  }
+}
+function doLogout(){ sessionStorage.removeItem('ofp_auth'); location.reload(); }
+document.getElementById('pwInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+if(sessionStorage.getItem('ofp_auth')==='1'){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('app').style.display='flex';
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+function showTab(name, btn){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ttab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='drugs') loadDrugs();
+  if(name==='settings') loadSettingsUI();
+}
+
+// ── DRUGS ─────────────────────────────────────────────────────────────────
+let drugs=[], editingId=null;
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function loadDrugs(){
+  try{ const r=localStorage.getItem(DRUG_KEY); if(r){ const p=JSON.parse(r); if(p&&p.length>0){ drugs=p; } } }catch(e){}
+  renderTable(); updateCount();
+}
+function saveDrugs(){ try{ localStorage.setItem(DRUG_KEY, JSON.stringify(drugs)); }catch(e){} }
+function updateCount(){ document.getElementById('drugCount').textContent=drugs.length+' drug'+(drugs.length!==1?'s':''); }
+
+function renderTable(){
+  const q=document.getElementById('searchInput').value.toLowerCase().trim();
+  const cls=document.getElementById('clsFilter').value;
+  const filtered=drugs.filter(d=>{
+    if(cls && d.cls!==cls) return false;
+    if(q){ const h=[d.name,d.generic,d.cls,(d.dx||[]).join(' '),d.moa,d.ae].join(' ').toLowerCase(); if(!h.includes(q)) return false; }
+    return true;
+  });
+  const body=document.getElementById('tableBody');
+  if(!filtered.length){ body.innerHTML='<div class="empty"><i class="ti ti-mood-empty"></i><p>No drugs found.</p></div>'; return; }
+  body.innerHTML=filtered.map(d=>{
+    const dx=(d.dx||[]).slice(0,2).join(', ')+((d.dx||[]).length>2?` +${(d.dx||[]).length-2}`:'');
+    return`<div class="drow">
+      <div class="dtd"><div class="dn">${esc(d.name)}</div><div class="dg">${esc(d.generic)}</div></div>
+      <div class="dtd"><span class="cbadge">${esc(d.cls)}</span></div>
+      <div class="dtd dxprev">${esc(dx)||'—'}</div>
+      <div class="dtd row-acts">
+        <button class="btn btn-plain btn-sm" onclick="openEdit('${d.id}')"><i class="ti ti-edit"></i> Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="askDelete('${d.id}')"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── PANEL ─────────────────────────────────────────────────────────────────
+const FIDS=['f-name','f-generic','f-moa','f-elim','f-dx','f-l1','f-l2','f-l3','f-ladj',
+  'f-dk-i','f-dk-t','f-dk-m','f-dk-n','f-do-i','f-do-t','f-do-m','f-do-n',
+  'f-doth-i','f-doth-t','f-doth-m','f-doth-n','f-ae','f-ci','f-bbw','f-notes'];
+function gv(id){ return document.getElementById(id)?.value.trim()||''; }
+function sv(id,v){ const el=document.getElementById(id); if(el) el.value=v||''; }
+
+function openAdd(){
+  editingId=null;
+  document.getElementById('panelTitle').textContent='Add new drug';
+  FIDS.forEach(id=>sv(id,''));
+  sv('f-cls','TCA'); sv('f-elimtype','hepatic');
+  openPanel();
+}
+function openEdit(id){
+  const d=drugs.find(x=>x.id===id); if(!d) return;
+  editingId=id;
+  document.getElementById('panelTitle').textContent='Edit — '+d.name;
+  sv('f-name',d.name); sv('f-generic',d.generic); sv('f-cls',d.cls);
+  sv('f-moa',d.moa); sv('f-elim',d.elim); sv('f-elimtype',d.elimtype);
+  sv('f-dx',(d.dx||[]).join(', '));
+  sv('f-l1',d.lines?.l1); sv('f-l2',d.lines?.l2); sv('f-l3',d.lines?.l3); sv('f-ladj',d.lines?.adj);
+  const km={i:'initial',t:'target',m:'max',n:'note'};
+  ['i','t','m','n'].forEach(k=>{
+    sv('f-dk-'+k, d.doses?.klasser?.[km[k]]);
+    sv('f-do-'+k, d.doses?.okeson?.[km[k]]);
+    sv('f-doth-'+k, d.doses?.other?.[km[k]]);
+  });
+  sv('f-ae',d.ae); sv('f-ci',d.ci); sv('f-bbw',d.bbw==='None'?'':d.bbw); sv('f-notes',d.notes);
+  openPanel();
+}
+function openPanel(){
+  document.getElementById('overlay').classList.add('on');
+  document.getElementById('panel').classList.add('on');
+  document.body.style.overflow='hidden';
+}
+function closePanel(){
+  document.getElementById('overlay').classList.remove('on');
+  document.getElementById('panel').classList.remove('on');
+  document.body.style.overflow='';
+}
+function saveDrug(){
+  const name=gv('f-name'); if(!name){ toast('Drug name required','bad'); return; }
+  const drug={
+    id: editingId||(Date.now().toString(36)), name, generic:gv('f-generic'),
+    cls:gv('f-cls'), moa:gv('f-moa'), elim:gv('f-elim'), elimtype:gv('f-elimtype'),
+    dx: gv('f-dx').split(',').map(x=>x.trim()).filter(Boolean),
+    lines:{ l1:gv('f-l1'), l2:gv('f-l2'), l3:gv('f-l3'), adj:gv('f-ladj') },
+    doses:{
+      klasser:{ initial:gv('f-dk-i'), target:gv('f-dk-t'), max:gv('f-dk-m'), note:gv('f-dk-n') },
+      okeson:{ initial:gv('f-do-i'), target:gv('f-do-t'), max:gv('f-do-m'), note:gv('f-do-n') },
+      other:{ initial:gv('f-doth-i'), target:gv('f-doth-t'), max:gv('f-doth-m'), note:gv('f-doth-n') },
+    },
+    ae:gv('f-ae'), ci:gv('f-ci'), bbw:gv('f-bbw')||'None', notes:gv('f-notes'),
+  };
+  if(editingId){ const i=drugs.findIndex(x=>x.id===editingId); if(i>-1) drugs[i]=drug; }
+  else drugs.push(drug);
+  saveDrugs(); renderTable(); updateCount(); closePanel();
+  toast((editingId?'Updated ':'Added ')+drug.name, 'ok');
+}
+
+// ── DELETE ────────────────────────────────────────────────────────────────
+let pendingId=null;
+function askDelete(id){
+  const d=drugs.find(x=>x.id===id); if(!d) return;
+  pendingId=id;
+  document.getElementById('confirmTitle').textContent='Delete '+d.name+'?';
+  document.getElementById('confirmMsg').textContent='This permanently removes it from your database and cannot be undone.';
+  document.getElementById('confirmBtn').onclick=doDelete;
+  document.getElementById('confirmOverlay').classList.add('on');
+}
+function doDelete(){
+  drugs=drugs.filter(x=>x.id!==pendingId);
+  saveDrugs(); renderTable(); updateCount(); closeConfirm(); toast('Drug deleted','bad');
+}
+function askReset(){
+  document.getElementById('confirmTitle').textContent='Reset to defaults?';
+  document.getElementById('confirmMsg').textContent='This restores the original 62 drugs and removes all your changes. Export a backup first!';
+  document.getElementById('confirmBtn').onclick=()=>{ localStorage.removeItem(DRUG_KEY); closeConfirm(); drugs=[]; renderTable(); updateCount(); toast('Reset — reload main site','ok'); };
+  document.getElementById('confirmOverlay').classList.add('on');
+}
+function closeConfirm(){ document.getElementById('confirmOverlay').classList.remove('on'); pendingId=null; }
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────────────────
+function exportData(){
+  const b=new Blob([JSON.stringify(drugs,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b);
+  a.download='ofp-meds-backup-'+new Date().toISOString().slice(0,10)+'.json'; a.click();
+  toast('Exported '+drugs.length+' drugs','ok');
+}
+function importData(e){
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const p=JSON.parse(ev.target.result);
+      if(!Array.isArray(p)) throw new Error('Invalid format');
+      document.getElementById('confirmTitle').textContent='Import '+p.length+' drugs?';
+      document.getElementById('confirmMsg').textContent='This replaces your current '+drugs.length+' drugs. Export a backup first if needed.';
+      document.getElementById('confirmBtn').onclick=()=>{ drugs=p; saveDrugs(); renderTable(); updateCount(); closeConfirm(); toast('Imported '+p.length+' drugs','ok'); };
+      document.getElementById('confirmOverlay').classList.add('on');
+    }catch(err){ toast('Import failed: '+err.message,'bad'); }
+  };
+  r.readAsText(file); e.target.value='';
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────────────────
+function getSettings(){ try{ return JSON.parse(localStorage.getItem(SET_KEY))||DEFAULT_SETTINGS; }catch(e){ return DEFAULT_SETTINGS; } }
+
+function loadSettingsUI(){
+  const s=getSettings();
+  // text fields
+  ['ref1','ref2','ref3','sitename','sitesub',
+   'h-lines','h-moa','h-elim','h-dose','h-ae','h-ci','h-notes',
+   'l1','l2','l3','ladj'].forEach(k=>{
+    const el=document.getElementById('s-'+k); if(el) el.value=s[k.replace('-','_')]||'';
+  });
+  // color fields
+  ['accent','navy','l1','l2','l3','ladj','danger'].forEach(k=>{
+    const val=s['c_'+k]||DEFAULT_SETTINGS['c_'+k]||'#000000';
+    const cp=document.getElementById('c-'+k); if(cp) cp.value=val;
+    const ct=document.getElementById('ct-'+k); if(ct) ct.value=val;
+  });
+}
+
+function saveSettings(){
+  const s={
+    ref1: document.getElementById('s-ref1').value.trim()||DEFAULT_SETTINGS.ref1,
+    ref2: document.getElementById('s-ref2').value.trim()||DEFAULT_SETTINGS.ref2,
+    ref3: document.getElementById('s-ref3').value.trim()||DEFAULT_SETTINGS.ref3,
+    sitename: document.getElementById('s-sitename').value.trim()||DEFAULT_SETTINGS.sitename,
+    sitesub: document.getElementById('s-sitesub').value.trim()||DEFAULT_SETTINGS.sitesub,
+    h_lines: document.getElementById('s-h-lines').value.trim()||DEFAULT_SETTINGS.h_lines,
+    h_moa: document.getElementById('s-h-moa').value.trim()||DEFAULT_SETTINGS.h_moa,
+    h_elim: document.getElementById('s-h-elim').value.trim()||DEFAULT_SETTINGS.h_elim,
+    h_dose: document.getElementById('s-h-dose').value.trim()||DEFAULT_SETTINGS.h_dose,
+    h_ae: document.getElementById('s-h-ae').value.trim()||DEFAULT_SETTINGS.h_ae,
+    h_ci: document.getElementById('s-h-ci').value.trim()||DEFAULT_SETTINGS.h_ci,
+    h_notes: document.getElementById('s-h-notes').value.trim()||DEFAULT_SETTINGS.h_notes,
+    l1: document.getElementById('s-l1').value.trim()||DEFAULT_SETTINGS.l1,
+    l2: document.getElementById('s-l2').value.trim()||DEFAULT_SETTINGS.l2,
+    l3: document.getElementById('s-l3').value.trim()||DEFAULT_SETTINGS.l3,
+    ladj: document.getElementById('s-ladj').value.trim()||DEFAULT_SETTINGS.ladj,
+    c_accent: document.getElementById('c-accent').value,
+    c_navy: document.getElementById('c-navy').value,
+    c_l1: document.getElementById('c-l1').value,
+    c_l2: document.getElementById('c-l2').value,
+    c_l3: document.getElementById('c-l3').value,
+    c_ladj: document.getElementById('c-ladj').value,
+    c_danger: document.getElementById('c-danger').value,
+  };
+  localStorage.setItem(SET_KEY, JSON.stringify(s));
+  toast('Settings saved — reload your main site to see all changes','ok');
+}
+
+function resetSettings(){
+  localStorage.removeItem(SET_KEY);
+  loadSettingsUI();
+  toast('Settings reset to defaults','ok');
+}
+
+function changePassword(){
+  const cur=document.getElementById('s-pw-cur').value;
+  const nw=document.getElementById('s-pw-new').value;
+  const con=document.getElementById('s-pw-con').value;
+  if(cur!==getPassword()){ toast('Current password incorrect','bad'); return; }
+  if(!nw){ toast('New password cannot be empty','bad'); return; }
+  if(nw!==con){ toast('New passwords do not match','bad'); return; }
+  localStorage.setItem(PW_KEY, nw);
+  document.getElementById('s-pw-cur').value='';
+  document.getElementById('s-pw-new').value='';
+  document.getElementById('s-pw-con').value='';
+  toast('Password changed successfully','ok');
+}
+
+// Color picker sync
+function syncColor(colorId, textId){
+  const val=document.getElementById(colorId).value;
+  document.getElementById(textId).value=val;
+}
+function syncColorText(textId, colorId){
+  const val=document.getElementById(textId).value.trim();
+  if(/^#[0-9a-fA-F]{6}$/.test(val)) document.getElementById(colorId).value=val;
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function toast(msg, type=''){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast on'+(type?' '+type:'');
+  setTimeout(()=>el.classList.remove('on'), 2800);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+if(sessionStorage.getItem('ofp_auth')==='1'){ loadDrugs(); loadSettingsUI(); }
+</script>
+</body>
+</html>
