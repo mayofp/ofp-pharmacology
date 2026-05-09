@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OFP Pharmacology</title>
+<style>
+body { font-family: sans-serif; background: #f0f4f0; margin: 0; }
+.header { background: #1a2744; color: white; padding: 16px 24px; display: flex; align-items: center; gap: 16px; }
+.header h1 { font-size: 18px; margin: 0; }
+.header input { flex: 1; padding: 8px 12px; border-radius: 6px; border: none; font-size: 14px; }
+.edit-btn { padding: 7px 14px; background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 6px; cursor: pointer; font-size: 13px; }
+.edit-btn:hover { background: rgba(255,255,255,0.1); }
+.layout { display: flex; gap: 20px; padding: 20px; max-width: 1300px; margin: 0 auto; }
+.sidebar { width: 220px; flex-shrink: 0; }
+.sidebar-section { background: white; border-radius: 8px; padding: 12px; margin-bottom: 12px; border: 1px solid #e0e0e0; }
+.sidebar-section h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #888; margin: 0 0 8px 0; }
+.filter-tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+.ftab { flex: 1; padding: 5px; border-radius: 20px; border: 1px solid #ccc; background: #f5f5f5; color: #666; cursor: pointer; font-size: 11px; font-weight: 600; }
+.ftab.active { background: #1a2744; color: white; border-color: #1a2744; }
+.filter-list { display: flex; flex-direction: column; gap: 2px; }
+.filter-btn { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; border: none; background: transparent; border-radius: 5px; cursor: pointer; font-size: 12px; color: #555; text-align: left; width: 100%; }
+.filter-btn:hover { background: #f0f0f0; }
+.filter-btn.active { background: #e0f5ec; color: #085041; font-weight: 600; }
+.filter-count { font-size: 10px; background: #eee; padding: 1px 5px; border-radius: 10px; }
+.main { flex: 1; }
+.result-count { font-size: 13px; color: #888; margin-bottom: 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 10px; }
+.card { background: white; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; cursor: pointer; }
+.card:hover { border-color: #bbb; }
+.card.open { border-color: #1D9E75; }
+.card-head { padding: 12px 14px; display: flex; justify-content: space-between; align-items: flex-start; }
+.drug-name { font-size: 14px; font-weight: 600; color: #1a1f1a; }
+.drug-generic { font-size: 11px; color: #888; font-style: italic; margin-top: 2px; }
+.cls-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: #e0f5ec; color: #085041; }
+.dx-row { padding: 0 14px 10px; display: flex; flex-wrap: wrap; gap: 4px; }
+.dx-pill { font-size: 10px; padding: 2px 7px; border-radius: 20px; background: #f5f5f5; color: #555; border: 1px solid #ddd; }
+.detail { display: none; border-top: 1px solid #eee; }
+.card.open .detail { display: block; }
+.sec { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; }
+.sec:last-child { border-bottom: none; }
+.sec-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #888; margin-bottom: 6px; }
+.line-row { display: flex; gap: 8px; margin-bottom: 4px; align-items: flex-start; }
+.ltag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap; margin-top: 2px; }
+.l1 { background: #dcfce7; color: #14532d; }
+.l2 { background: #dbeafe; color: #1e3a8a; }
+.l3 { background: #ede9fe; color: #4c1d95; }
+.ladj { background: #fef9c3; color: #713f12; }
+.lval { font-size: 13px; color: #333; line-height: 1.5; }
+.body-text { font-size: 13px; color: #333; line-height: 1.6; }
+.dose-tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+.dtab { font-size: 11px; padding: 3px 10px; border-radius: 4px; border: 1px solid #ccc; background: #f5f5f5; color: #666; cursor: pointer; }
+.dtab.active { background: #085041; color: #9FE1CB; border-color: #085041; }
+.dose-grid { display: grid; grid-template-columns: 70px 1fr; gap: 4px 10px; }
+.dose-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #888; }
+.dose-val { font-size: 12px; font-family: monospace; color: #333; }
+.dose-note { font-size: 12px; color: #666; font-style: italic; margin-top: 6px; }
+.ci-box { background: #fff0f0; border: 1px solid rgba(185,28,28,0.2); border-radius: 6px; padding: 8px 10px; font-size: 13px; color: #b91c1c; }
+.bbw { font-size: 12px; color: #b91c1c; margin-top: 6px; }
+.note-area { padding: 10px 14px; background: #f9f9f9; }
+.note-area textarea { width: 100%; border: 1px solid #ddd; border-radius: 6px; padding: 7px 9px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 50px; outline: none; box-sizing: border-box; }
+.note-area textarea:focus { border-color: #1D9E75; }
+.note-btns { display: flex; gap: 6px; margin-top: 6px; }
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; }
+.btn-green { background: #1D9E75; color: white; }
+.btn-plain { background: white; color: #555; border: 1px solid #ccc; }
+.btn-red { background: #fff0f0; color: #b91c1c; border: 1px solid rgba(185,28,28,0.2); }
+.admin-bar { background: #085041; padding: 8px 24px; display: none; align-items: center; gap: 12px; flex-wrap: wrap; }
+.admin-bar.on { display: flex; }
+.admin-bar span { color: #9FE1CB; font-size: 12px; font-weight: 700; }
+.abar-btn { padding: 5px 12px; border: 1px solid rgba(255,255,255,0.25); background: transparent; color: white; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.abar-btn:hover { background: rgba(255,255,255,0.1); }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px; }
+.overlay.on { display: flex; }
+.panel { background: white; border-radius: 10px; width: min(640px,100%); max-height: 90vh; overflow-y: auto; }
+.panel-head { padding: 14px 18px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: white; }
+.panel-head h2 { font-size: 16px; margin: 0; }
+.panel-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #888; line-height: 1; }
+.panel-body { padding: 18px; }
+.panel-foot { padding: 14px 18px; border-top: 1px solid #eee; display: flex; gap: 8px; justify-content: flex-end; }
+.form-section { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #1D9E75; margin: 16px 0 10px; padding-bottom: 5px; border-bottom: 1px solid #eee; }
+.form-section:first-child { margin-top: 0; }
+.form-group { margin-bottom: 10px; }
+.form-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #888; display: block; margin-bottom: 4px; }
+.form-input, .form-select, .form-textarea { width: 100%; border: 1px solid #ddd; border-radius: 6px; padding: 7px 10px; font-size: 13px; font-family: inherit; outline: none; box-sizing: border-box; background: #fafafa; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: #1D9E75; background: white; }
+.form-textarea { resize: vertical; min-height: 56px; }
+.form-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.settings-card { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 14px; }
+.settings-card h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #1D9E75; margin: 0 0 12px; padding-bottom: 6px; border-bottom: 1px solid #eee; }
+.setting-row { display: grid; grid-template-columns: 120px 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+.setting-row label { font-size: 12px; color: #555; font-weight: 500; }
+.setting-row input { border: 1px solid #ddd; border-radius: 5px; padding: 5px 8px; font-size: 12px; font-family: inherit; outline: none; width: 100%; }
+.setting-row input:focus { border-color: #1D9E75; }
+.color-row { display: grid; grid-template-columns: 120px 36px 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+.color-row label { font-size: 12px; color: #555; font-weight: 500; }
+.color-row input[type=color] { width: 36px; height: 32px; padding: 2px; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; }
+.color-row input[type=text] { border: 1px solid #ddd; border-radius: 5px; padding: 5px 8px; font-size: 12px; font-family: monospace; outline: none; width: 100%; }
+.pw-box { background: white; border-radius: 10px; padding: 28px; width: min(340px,100%); }
+.pw-box h2 { font-size: 16px; margin: 0 0 16px; }
+.pw-error { color: #b91c1c; font-size: 12px; margin-bottom: 8px; display: none; }
+.pw-btns { display: flex; gap: 8px; margin-top: 12px; }
+.chev { transition: transform 0.2s; display: inline-block; }
+.card.open .chev { transform: rotate(180deg); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="flex-shrink:0">
+    <div style="font-size:15px;font-weight:600" id="site-name">OFP Pharmacology</div>
+    <div style="font-size:11px;opacity:0.5" id="site-sub">Orofacial Pain Pharmacology Reference</div>
+  </div>
+  <input type="text" id="search" placeholder="Search drug, condition, MOA..." oninput="doRender()">
+  <button class="edit-btn" id="editBtn" onclick="clickEditBtn()">&#128274; Edit mode</button>
+</div>
+
+<div class="admin-bar" id="adminBar">
+  <span>&#128737; Admin active</span>
+  <button class="abar-btn" onclick="openDrugPanel(null)">+ Add drug</button>
+  <button class="abar-btn" onclick="openSettingsPanel()">&#9881; Settings</button>
+  <button class="abar-btn" onclick="doExport()">&#8659; Export</button>
+  <label class="abar-btn" style="cursor:pointer">&#8657; Import<input type="file" accept=".json" style="display:none" onchange="doImport(event)"></label>
+  <button class="abar-btn" onclick="exitAdmin()" style="border-color:rgba(255,100,100,0.4);color:#fca5a5">&#128274; Exit</button>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="filter-tabs">
+        <button class="ftab active" id="tab-cls" onclick="switchTab('cls')">By Class</button>
+        <button class="ftab" id="tab-dx" onclick="switchTab('dx')">By Dx</button>
+      </div>
+      <div class="filter-list" id="filterList"></div>
+    </div>
+    <div class="sidebar-section">
+      <h3>Stats</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:#f0f4f0;border-radius:6px;padding:8px 10px">
+          <div style="font-size:22px;font-weight:600;color:#1D9E75" id="statTotal">-</div>
+          <div style="font-size:10px;color:#888;text-transform:uppercase">Drugs</div>
+        </div>
+        <div style="background:#f0f4f0;border-radius:6px;padding:8px 10px">
+          <div style="font-size:22px;font-weight:600;color:#1D9E75" id="statNoted">-</div>
+          <div style="font-size:10px;color:#888;text-transform:uppercase">Noted</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="result-count" id="resultCount"></div>
+    <div class="grid" id="drugGrid"></div>
+  </div>
+</div>
+
+<!-- DRUG EDIT PANEL -->
+<div class="overlay" id="drugOverlay" onclick="overlayClick(event,'drugOverlay')">
+  <div class="panel">
+    <div class="panel-head">
+      <h2 id="panelTitle">Add drug</h2>
+      <button class="panel-close" onclick="closePanel('drugOverlay')">&times;</button>
+    </div>
+    <div class="panel-body">
+      <div class="form-section">Identification</div>
+      <div class="form-row2">
+        <div class="form-group"><label class="form-label">Drug name *</label><input class="form-input" id="f-name"></div>
+        <div class="form-group"><label class="form-label">Generic name</label><input class="form-input" id="f-generic"></div>
+      </div>
+      <div class="form-row2">
+        <div class="form-group"><label class="form-label">Drug class</label>
+          <select class="form-select" id="f-cls">
+            <option>TCA</option><option>SNRI</option><option>SSRI</option><option>Anticonvulsant</option>
+            <option>Muscle Relaxant</option><option>Benzodiazepine</option><option>Triptans</option>
+            <option>Ditan</option><option>CGRP mAb</option><option>Gepant</option>
+            <option>Botulinum Toxin</option><option>Topical</option><option>Corticosteroid</option>
+            <option>Antifungal</option><option>Antihistamine</option><option>Beta-Blocker</option>
+            <option>NSAID</option><option>Ergotamine</option><option>Opioid</option>
+            <option>IV/Infusion</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Elimination type</label>
+          <select class="form-select" id="f-elimtype">
+            <option value="hepatic">Hepatic</option><option value="renal">Renal</option>
+            <option value="local">Local / Topical</option><option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Elimination detail</label><input class="form-input" id="f-elim"></div>
+      <div class="form-group"><label class="form-label">Diagnoses (comma-separated)</label><input class="form-input" id="f-dx"></div>
+      <div class="form-section">Mechanism of Action</div>
+      <div class="form-group"><textarea class="form-textarea" id="f-moa" style="min-height:60px"></textarea></div>
+      <div class="form-section">Treatment role</div>
+      <div class="form-group"><label class="form-label">First-line for</label><input class="form-input" id="f-l1"></div>
+      <div class="form-group"><label class="form-label">Second-line for</label><input class="form-input" id="f-l2"></div>
+      <div class="form-group"><label class="form-label">Third-line for</label><input class="form-input" id="f-l3"></div>
+      <div class="form-group"><label class="form-label">Adjunct for</label><input class="form-input" id="f-ladj"></div>
+      <div class="form-section">Dosage — Ref 1 (<span id="ref1lbl">Guideline</span>)</div>
+      <div class="form-row3">
+        <div class="form-group"><label class="form-label">Initial</label><input class="form-input" id="f-dk-i"></div>
+        <div class="form-group"><label class="form-label">Target</label><input class="form-input" id="f-dk-t"></div>
+        <div class="form-group"><label class="form-label">Max/day</label><input class="form-input" id="f-dk-m"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="f-dk-n"></div>
+      <div class="form-section">Dosage — Ref 2 (<span id="ref2lbl">Okeson</span>)</div>
+      <div class="form-row3">
+        <div class="form-group"><label class="form-label">Initial</label><input class="form-input" id="f-do-i"></div>
+        <div class="form-group"><label class="form-label">Target</label><input class="form-input" id="f-do-t"></div>
+        <div class="form-group"><label class="form-label">Max/day</label><input class="form-input" id="f-do-m"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="f-do-n"></div>
+      <div class="form-section">Dosage — Ref 3 (<span id="ref3lbl">Clinical/Other</span>)</div>
+      <div class="form-row3">
+        <div class="form-group"><label class="form-label">Initial</label><input class="form-input" id="f-doth-i"></div>
+        <div class="form-group"><label class="form-label">Target</label><input class="form-input" id="f-doth-t"></div>
+        <div class="form-group"><label class="form-label">Max/day</label><input class="form-input" id="f-doth-m"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="f-doth-n"></div>
+      <div class="form-section">Safety</div>
+      <div class="form-group"><label class="form-label">Side effects</label><textarea class="form-textarea" id="f-ae"></textarea></div>
+      <div class="form-group"><label class="form-label">Absolute contraindications</label><textarea class="form-textarea" id="f-ci"></textarea></div>
+      <div class="form-group"><label class="form-label">Black box warning</label><input class="form-input" id="f-bbw"></div>
+      <div class="form-section">Notes</div>
+      <div class="form-group"><textarea class="form-textarea" id="f-notes"></textarea></div>
+    </div>
+    <div class="panel-foot">
+      <button class="btn btn-plain" onclick="closePanel('drugOverlay')">Cancel</button>
+      <button class="btn btn-green" onclick="saveDrug()">&#10003; Save drug</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS PANEL -->
+<div class="overlay" id="settingsOverlay" onclick="overlayClick(event,'settingsOverlay')">
+  <div class="panel" style="max-width:700px">
+    <div class="panel-head">
+      <h2>Settings</h2>
+      <button class="panel-close" onclick="closePanel('settingsOverlay')">&times;</button>
+    </div>
+    <div class="panel-body">
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3>Reference names</h3>
+          <div class="setting-row"><label>Ref 1 tab</label><input id="s-ref1" placeholder="Guideline"></div>
+          <div class="setting-row"><label>Ref 2 tab</label><input id="s-ref2" placeholder="Okeson"></div>
+          <div class="setting-row"><label>Ref 3 tab</label><input id="s-ref3" placeholder="Clinical/Other"></div>
+        </div>
+        <div class="settings-card">
+          <h3>Site title</h3>
+          <div class="setting-row"><label>Site name</label><input id="s-sitename" placeholder="OFP Pharmacology"></div>
+          <div class="setting-row"><label>Subtitle</label><input id="s-sitesub" placeholder="Orofacial Pain Pharmacology Reference"></div>
+        </div>
+        <div class="settings-card">
+          <h3>Section headings</h3>
+          <div class="setting-row"><label>Treatment role</label><input id="s-h-lines" placeholder="Used for (by line)"></div>
+          <div class="setting-row"><label>Mechanism</label><input id="s-h-moa" placeholder="Mechanism of action"></div>
+          <div class="setting-row"><label>Elimination</label><input id="s-h-elim" placeholder="Elimination / Metabolism"></div>
+          <div class="setting-row"><label>Dosage</label><input id="s-h-dose" placeholder="Dosage by reference"></div>
+          <div class="setting-row"><label>Side effects</label><input id="s-h-ae" placeholder="Side effects"></div>
+          <div class="setting-row"><label>Contraindications</label><input id="s-h-ci" placeholder="Absolute contraindications"></div>
+          <div class="setting-row"><label>Notes</label><input id="s-h-notes" placeholder="Board notes"></div>
+        </div>
+        <div class="settings-card">
+          <h3>Treatment line labels</h3>
+          <div class="setting-row"><label>First-line</label><input id="s-l1" placeholder="First-line"></div>
+          <div class="setting-row"><label>Second-line</label><input id="s-l2" placeholder="Second-line"></div>
+          <div class="setting-row"><label>Third-line</label><input id="s-l3" placeholder="Third-line"></div>
+          <div class="setting-row"><label>Adjunct</label><input id="s-ladj" placeholder="Adjunct"></div>
+        </div>
+        <div class="settings-card">
+          <h3>Theme colors</h3>
+          <div class="color-row"><label>Primary green</label><input type="color" id="c-accent" value="#1D9E75" oninput="syncColor('c-accent','ct-accent')"><input type="text" id="ct-accent" value="#1D9E75" oninput="syncColorText('ct-accent','c-accent')"></div>
+          <div class="color-row"><label>Header navy</label><input type="color" id="c-navy" value="#1a2744" oninput="syncColor('c-navy','ct-navy')"><input type="text" id="ct-navy" value="#1a2744" oninput="syncColorText('ct-navy','c-navy')"></div>
+          <div class="color-row"><label>First-line tag</label><input type="color" id="c-l1c" value="#14532d" oninput="syncColor('c-l1c','ct-l1c')"><input type="text" id="ct-l1c" value="#14532d" oninput="syncColorText('ct-l1c','c-l1c')"></div>
+          <div class="color-row"><label>Second-line tag</label><input type="color" id="c-l2c" value="#1e3a8a" oninput="syncColor('c-l2c','ct-l2c')"><input type="text" id="ct-l2c" value="#1e3a8a" oninput="syncColorText('ct-l2c','c-l2c')"></div>
+          <div class="color-row"><label>Third-line tag</label><input type="color" id="c-l3c" value="#4c1d95" oninput="syncColor('c-l3c','ct-l3c')"><input type="text" id="ct-l3c" value="#4c1d95" oninput="syncColorText('ct-l3c','c-l3c')"></div>
+          <div class="color-row"><label>Adjunct tag</label><input type="color" id="c-ladjc" value="#713f12" oninput="syncColor('c-ladjc','ct-ladjc')"><input type="text" id="ct-ladjc" value="#713f12" oninput="syncColorText('ct-ladjc','c-ladjc')"></div>
+        </div>
+        <div class="settings-card">
+          <h3>Change password</h3>
+          <div class="setting-row"><label>Current</label><input type="password" id="s-pw-cur"></div>
+          <div class="setting-row"><label>New</label><input type="password" id="s-pw-new"></div>
+          <div class="setting-row"><label>Confirm</label><input type="password" id="s-pw-con"></div>
+          <button class="btn btn-plain" style="margin-top:8px;font-size:12px" onclick="changePassword()">Change password</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel-foot">
+      <button class="btn btn-plain" onclick="closePanel('settingsOverlay')">Cancel</button>
+      <button class="btn btn-green" onclick="saveSettings()">&#10003; Save all settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- PASSWORD -->
+<div class="overlay" id="pwOverlay" onclick="overlayClick(event,'pwOverlay')">
+  <div class="pw-box">
+    <h2>&#128274; Admin login</h2>
+    <div class="pw-error" id="pwError">Incorrect password</div>
+    <label class="form-label">Password</label>
+    <input type="password" class="form-input" id="pwInput" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()" style="margin-bottom:12px">
+    <div class="pw-btns">
+      <button class="btn btn-plain" style="flex:1" onclick="closePanel('pwOverlay')">Cancel</button>
+      <button class="btn btn-green" style="flex:1" onclick="doLogin()">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM -->
+<div class="overlay" id="confirmOverlay">
+  <div class="pw-box">
+    <h2 id="confirmTitle">Are you sure?</h2>
+    <p id="confirmMsg" style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.5"></p>
+    <div class="pw-btns">
+      <button class="btn btn-plain" style="flex:1" onclick="closePanel('confirmOverlay')">Cancel</button>
+      <button class="btn btn-red" style="flex:1" id="confirmOkBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" style="position:fixed;bottom:20px;right:20px;background:#1a2744;color:white;padding:10px 16px;border-radius:8px;font-size:13px;z-index:999;opacity:0;transform:translateY(10px);transition:all 0.25s;pointer-events:none"></div>
+
+<script>
+var DRUGS=[{"id":"d01","name":"Amitriptyline","generic":"amitriptyline HCl","cls":"TCA","moa":"NE+5-HT reuptake inhibition (NE>5-HT); Na+ channel blockade; H1, M1, alpha1 antagonism","elim":"Hepatic (CYP2D6, CYP2C19)","elimtype":"hepatic","dx":["TMD - Myalgia","Myofascial Pain","Migraine - Prophylaxis","Chronic Migraine","Tension-Type Headache","Burning Mouth Syndrome (BMS)","Persistent Idiopathic Facial Pain (PIFP)","Post-Traumatic Trigeminal Neuropathy (PTTN)","Fibromyalgia","Central Sensitization","Sleep Disturbance in Pain","Postherpetic Neuralgia (PHN)"],"lines":{"l1":"Chronic orofacial pain, neuropathic pain, sleep disturbance","l2":"Migraine prophylaxis, fibromyalgia, BMS","l3":"","adj":"Depression adjunct in pain patients"},"doses":{"klasser":{"initial":"10 mg QHS","target":"25-75 mg QHS","max":"150 mg/day","note":"Titrate by 10-25 mg q1-2 weeks"},"okeson":{"initial":"10 mg QHS","target":"25-50 mg QHS","max":"100 mg/day","note":"Increase slowly"},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Anticholinergic (dry mouth, urinary retention, constipation, blurred vision), sedation, orthostatic hypotension, weight gain, QTc prolongation","ci":"Recent MI, cardiac arrhythmia, concurrent MAOI, angle-closure glaucoma, urinary retention, severe hepatic disease","bbw":"Suicidality in children, adolescents, young adults","notes":""},{"id":"d02","name":"Nortriptyline","generic":"nortriptyline HCl","cls":"TCA","moa":"NE reuptake inhibition > 5-HT; Na+ channel blockade; less anticholinergic than amitriptyline","elim":"Hepatic (CYP2D6)","elimtype":"hepatic","dx":["TMD - Myalgia","Myofascial Pain","Persistent Idiopathic Facial Pain (PIFP)","Post-Traumatic Trigeminal Neuropathy (PTTN)","Sleep Disturbance in Pain","Postherpetic Neuralgia (PHN)"],"lines":{"l1":"Neuropathic pain (better-tolerated TCA)","l2":"Chronic orofacial pain, sleep disturbance","l3":"","adj":""},"doses":{"klasser":{"initial":"10 mg QHS","target":"25-75 mg QHS","max":"150 mg/day","note":"Fewer anticholinergic effects than amitriptyline"},"okeson":{"initial":"10 mg QHS","target":"25-50 mg QHS","max":"100 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Milder anticholinergic than amitriptyline; sedation, dry mouth, orthostatic hypotension, QTc prolongation","ci":"Concurrent MAOI, recent MI, cardiac arrhythmia, angle-closure glaucoma","bbw":"Suicidality in children, adolescents, young adults","notes":""},{"id":"d03","name":"Doxepin","generic":"doxepin HCl","cls":"TCA","moa":"NE+5-HT reuptake inhibition; potent H1 antagonism; M1, alpha1 antagonism","elim":"Hepatic (CYP2D6, CYP2C19)","elimtype":"hepatic","dx":["Burning Mouth Syndrome (BMS)","Sleep Disturbance in Pain","Postherpetic Neuralgia (PHN)","Persistent Idiopathic Facial Pain (PIFP)"],"lines":{"l1":"Burning mouth syndrome, sleep disturbance in chronic pain","l2":"Neuropathic pain, anxiety","l3":"","adj":"Topical (Zonalon) for PHN"},"doses":{"klasser":{"initial":"10 mg QHS","target":"25-75 mg QHS","max":"150 mg/day","note":"3-6 mg (Silenor) FDA-approved for insomnia"},"okeson":{"initial":"10 mg QHS","target":"25-75 mg QHS","max":"150 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":"Topical Zonalon 5% cream apply QID for PHN"}},"ae":"Potent sedation, anticholinergic effects, weight gain, QTc prolongation","ci":"Concurrent MAOI, recent MI, cardiac arrhythmia, angle-closure glaucoma, urinary retention","bbw":"Suicidality in children, adolescents, young adults","notes":"Most sedating TCA; low-dose (3-6 mg) FDA-approved for insomnia"},{"id":"d04","name":"Duloxetine","generic":"duloxetine HCl","cls":"SNRI","moa":"Balanced NE+5-HT reuptake inhibition; activates descending pain inhibitory pathways via spinal NE","elim":"Hepatic (CYP1A2, CYP2D6)","elimtype":"hepatic","dx":["TMD - Myalgia","Myofascial Pain","Fibromyalgia","Central Sensitization","Post-Traumatic Trigeminal Neuropathy (PTTN)","Persistent Idiopathic Facial Pain (PIFP)"],"lines":{"l1":"Chronic musculoskeletal pain, fibromyalgia, neuropathic pain","l2":"TMD myalgia, depression with pain","l3":"","adj":"Anxiety in OFP patients"},"doses":{"klasser":{"initial":"30 mg QD","target":"60 mg QD","max":"120 mg/day","note":"30 mg x 1 week before advancing"},"okeson":{"initial":"30 mg QD","target":"60 mg QD","max":"120 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":"FDA-approved: fibromyalgia, DPNP, chronic MSK pain"}},"ae":"Nausea, dry mouth, diaphoresis, insomnia, sexual dysfunction, hypertension, discontinuation syndrome","ci":"Concurrent MAOI, uncontrolled narrow-angle glaucoma, severe hepatic impairment","bbw":"Suicidality in young adults; hepatotoxicity","notes":""},{"id":"d05","name":"Venlafaxine","generic":"venlafaxine HCl","cls":"SNRI","moa":"5-HT reuptake inhibition at low doses; NE reuptake added at higher doses","elim":"Hepatic (CYP2D6)","elimtype":"hepatic","dx":["Post-Traumatic Trigeminal Neuropathy (PTTN)","Persistent Idiopathic Facial Pain (PIFP)","Migraine - Prophylaxis","Fibromyalgia"],"lines":{"l1":"Neuropathic pain, depression","l2":"Migraine prophylaxis, anxiety","l3":"","adj":""},"doses":{"klasser":{"initial":"37.5 mg QD","target":"75-150 mg QD","max":"225 mg/day","note":"XR preferred; titrate weekly"},"okeson":{"initial":"37.5 mg QD","target":"75-150 mg QD","max":"150 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"HTN (dose-dependent), nausea, diaphoresis, sexual dysfunction, discontinuation syndrome","ci":"Concurrent MAOI, uncontrolled HTN","bbw":"Suicidality in young adults","notes":"Severe discontinuation syndrome - always taper"},{"id":"d06","name":"Mirtazapine","generic":"mirtazapine","cls":"SNRI","moa":"alpha2 antagonist; potent H1 antagonist (sedation); 5-HT2/5-HT3 antagonist; NaSSA class","elim":"Hepatic (CYP1A2, CYP2D6, CYP3A4)","elimtype":"hepatic","dx":["Sleep Disturbance in Pain","Fibromyalgia","Migraine - Prophylaxis","Persistent Idiopathic Facial Pain (PIFP)"],"lines":{"l1":"","l2":"Sleep disturbance, nausea in chronic pain; migraine prophylaxis","l3":"Neuropathic pain (alternative)","adj":"Depression with sleep and appetite disturbance"},"doses":{"klasser":{"initial":"7.5-15 mg QHS","target":"15-30 mg QHS","max":"45 mg/day","note":"Paradox: sedation decreases at higher doses"},"okeson":{"initial":"15 mg QHS","target":"15-30 mg QHS","max":"45 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Sedation, weight gain, increased appetite, dry mouth, dizziness, agranulocytosis (rare)","ci":"Concurrent MAOI; caution with serotonergic drugs","bbw":"Suicidality in young adults","notes":"Anti-nausea via 5-HT3 antagonism"},{"id":"d07","name":"Gabapentin","generic":"gabapentin","cls":"Anticonvulsant","moa":"Binds alpha2-delta-1 subunit of voltage-gated Ca2+ channels; reduces glutamate, substance P, CGRP release","elim":"Renal (unchanged; dose adjust for CrCl)","elimtype":"renal","dx":["Post-Traumatic Trigeminal Neuropathy (PTTN)","Postherpetic Neuralgia (PHN)","Burning Mouth Syndrome (BMS)","Central Sensitization","Persistent Idiopathic Facial Pain (PIFP)","Sleep Disturbance in Pain","Fibromyalgia"],"lines":{"l1":"Neuropathic orofacial pain, PHN","l2":"Burning mouth syndrome, central sensitization","l3":"","adj":"Sleep disturbance in pain patients"},"doses":{"klasser":{"initial":"300 mg QHS","target":"300-1200 mg TID","max":"3600 mg/day","note":"Titrate slowly; renal dose adjustment required"},"okeson":{"initial":"100-300 mg QHS","target":"300 mg TID","max":"3600 mg/day","note":"Titrate slowly"},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Sedation, dizziness, ataxia, peripheral edema, weight gain, cognitive blunting","ci":"Known hypersensitivity; caution with opioids/CNS depressants","bbw":"Serious respiratory depression with CNS depressants/opioids","notes":"Non-linear absorption; more variable PK than pregabalin"},{"id":"d08","name":"Pregabalin","generic":"pregabalin","cls":"Anticonvulsant","moa":"Binds alpha2-delta-1 subunit of voltage-gated Ca2+ channels; more predictable linear PK than gabapentin","elim":"Renal (unchanged; dose adjust for CrCl)","elimtype":"renal","dx":["Post-Traumatic Trigeminal Neuropathy (PTTN)","Postherpetic Neuralgia (PHN)","Fibromyalgia","Central Sensitization","Burning Mouth Syndrome (BMS)"],"lines":{"l1":"Neuropathic pain, fibromyalgia, PHN","l2":"Central sensitization, anxiety","l3":"","adj":""},"doses":{"klasser":{"initial":"50 mg TID or 75 mg BID","target":"150-300 mg/day","max":"600 mg/day","note":"Renal adjustment required; Schedule V"},"okeson":{"initial":"75 mg BID","target":"150-300 mg/day","max":"600 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":"More predictable absorption than gabapentin"}},"ae":"Sedation, dizziness, weight gain, peripheral edema, blurred vision, euphoria (abuse potential)","ci":"Known hypersensitivity; caution with opioids (Schedule V)","bbw":"Serious respiratory depression with opioids/CNS depressants","notes":"Schedule V; faster onset than gabapentin"},{"id":"d09","name":"Carbamazepine","generic":"carbamazepine","cls":"Anticonvulsant","moa":"Use-dependent Na+ channel blockade; reduces high-frequency repetitive firing in trigeminal nucleus","elim":"Hepatic (CYP3A4 - auto-inducer)","elimtype":"hepatic","dx":["Trigeminal Neuralgia (TN)","Glossopharyngeal Neuralgia"],"lines":{"l1":"Trigeminal neuralgia (FIRST-LINE), glossopharyngeal neuralgia","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"100 mg BID","target":"400-800 mg/day BID-TID","max":"1200 mg/day","note":"Titrate 100 mg/week; monitor CBC, LFTs, Na+; level 4-12 mcg/mL"},"okeson":{"initial":"100-200 mg BID","target":"400-800 mg/day","max":"1200 mg/day","note":"Titrate to pain relief"},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Dizziness, diplopia, ataxia, aplastic anemia, agranulocytosis, hyponatremia, SJS/TEN, hepatotoxicity","ci":"Bone marrow suppression, concurrent MAOI, nefazodone; HLA-B*1502 (screen Asian patients)","bbw":"Aplastic anemia/agranulocytosis; SJS/TEN (HLA-B*1502)","notes":"First-line TN; strong CYP3A4 inducer with many DDIs"},{"id":"d10","name":"Oxcarbazepine","generic":"oxcarbazepine","cls":"Anticonvulsant","moa":"Na+ channel blockade via active metabolite MHD; fewer DDIs than carbamazepine","elim":"Renal (active metabolite MHD)","elimtype":"renal","dx":["Trigeminal Neuralgia (TN)","Glossopharyngeal Neuralgia"],"lines":{"l1":"Trigeminal neuralgia (CBZ alternative)","l2":"Glossopharyngeal neuralgia","l3":"","adj":""},"doses":{"klasser":{"initial":"150-300 mg BID","target":"600-1200 mg/day","max":"1800 mg/day","note":"Monitor serum Na+; fewer DDIs than CBZ"},"okeson":{"initial":"150-300 mg BID","target":"600-1200 mg/day","max":"1800 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Hyponatremia (monitor Na+), dizziness, diplopia, fatigue, SJS","ci":"Known hypersensitivity to CBZ (cross-reactivity possible); HLA-B*1502","bbw":"SJS/TEN; hyponatremia","notes":"Preferred over CBZ for fewer DDIs"},{"id":"d11","name":"Lamotrigine","generic":"lamotrigine","cls":"Anticonvulsant","moa":"Na+ channel blockade; inhibits presynaptic glutamate release","elim":"Hepatic (UGT glucuronidation)","elimtype":"hepatic","dx":["Trigeminal Neuralgia (TN)","Post-Traumatic Trigeminal Neuropathy (PTTN)","Central Sensitization"],"lines":{"l1":"","l2":"Trigeminal neuralgia (alternative)","l3":"Refractory neuropathic pain","adj":"Central sensitization"},"doses":{"klasser":{"initial":"25 mg QOD x2wks then 25 mg QD x2wks","target":"100-200 mg/day","max":"400 mg/day","note":"Slow titration critical; with valproate: start 12.5 mg QOD"},"okeson":{"initial":"25 mg QD slow titration","target":"100-200 mg/day","max":"400 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Rash, SJS (rapid titration or with valproate), dizziness, diplopia, insomnia","ci":"Rapid titration; concurrent valproate without dose reduction","bbw":"SJS/TEN; hemophagocytic lymphohistiocytosis (HLH)","notes":"Titration speed is the primary safety variable"},{"id":"d12","name":"Topiramate","generic":"topiramate","cls":"Anticonvulsant","moa":"Na+ channel blockade; GABA-A potentiation; AMPA/kainate antagonism; carbonic anhydrase inhibition","elim":"Renal (partially hepatic)","elimtype":"renal","dx":["Migraine - Prophylaxis","Chronic Migraine","Idiopathic Intracranial Hypertension (IIH)","Post-Traumatic Trigeminal Neuropathy (PTTN)"],"lines":{"l1":"Migraine prophylaxis (FDA-approved)","l2":"Neuropathic pain, IIH","l3":"","adj":""},"doses":{"klasser":{"initial":"25 mg QHS","target":"50-100 mg BID","max":"400 mg/day","note":"Increase 25 mg/week; FDA-approved migraine prophylaxis at 100 mg/day"},"okeson":{"initial":"25 mg QD","target":"50-100 mg BID","max":"200 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Cognitive dulling, word-finding difficulty, weight loss, paresthesia, nephrolithiasis, metabolic acidosis, acute angle-closure glaucoma","ci":"Concurrent carbonic anhydrase inhibitors; avoid in pregnancy (cleft palate - Category D)","bbw":"None (teratogenic)","notes":"Adequate hydration to reduce kidney stone risk"},{"id":"d13","name":"Valproate / Divalproex","generic":"valproic acid / divalproex sodium","cls":"Anticonvulsant","moa":"Increases GABA synthesis; Na+ channel blockade; reduces T-type Ca2+ channels; NMDA antagonism","elim":"Hepatic (glucuronidation, beta-oxidation)","elimtype":"hepatic","dx":["Migraine - Prophylaxis","Chronic Migraine","Trigeminal Neuralgia (TN)"],"lines":{"l1":"Migraine prophylaxis (FDA-approved)","l2":"Neuropathic pain, central sensitization","l3":"","adj":""},"doses":{"klasser":{"initial":"250 mg BID (divalproex ER)","target":"500-1000 mg/day","max":"1500 mg/day","note":"Divalproex ER preferred; monitor LFTs, CBC; lamotrigine interaction critical"},"okeson":{"initial":"250 mg BID","target":"500-1000 mg/day","max":"1500 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Weight gain, tremor, alopecia, nausea, thrombocytopenia, hepatotoxicity, pancreatitis, teratogenicity","ci":"Hepatic disease, urea cycle disorders, pregnancy (Category X for migraine)","bbw":"Hepatotoxicity; teratogenicity (neural tube defects); pancreatitis","notes":"AVOID in women of reproductive age - Category X; doubles lamotrigine levels"},{"id":"d14","name":"Levetiracetam","generic":"levetiracetam","cls":"Anticonvulsant","moa":"Binds SV2A; modulates neurotransmitter release; non-Na+/non-GABA mechanism","elim":"Renal (66% unchanged)","elimtype":"renal","dx":["Migraine - Prophylaxis","Post-Traumatic Trigeminal Neuropathy (PTTN)","Trigeminal Neuralgia (TN)"],"lines":{"l1":"","l2":"Migraine prophylaxis (off-label), neuropathic pain","l3":"Refractory orofacial pain","adj":""},"doses":{"klasser":{"initial":"250 mg BID","target":"500-1000 mg BID","max":"3000 mg/day","note":"Renal dose adjustment required; fewer DDIs than older AEDs"},"okeson":{"initial":"250 mg BID","target":"500-1000 mg BID","max":"3000 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Somnolence, dizziness, behavioral changes (keppra rage), infection","ci":"Known hypersensitivity; dose reduce in renal impairment","bbw":"None","notes":"Minimal DDIs - advantage over CBZ/valproate"},{"id":"d15","name":"Phenytoin","generic":"phenytoin sodium","cls":"Anticonvulsant","moa":"Use-dependent Na+ channel blockade; zero-order kinetics","elim":"Hepatic (CYP2C9, CYP2C19 - zero-order kinetics)","elimtype":"hepatic","dx":["Trigeminal Neuralgia (TN)","Post-Traumatic Trigeminal Neuropathy (PTTN)"],"lines":{"l1":"","l2":"Trigeminal neuralgia (alternative - less effective than CBZ)","l3":"Refractory neuropathic pain","adj":""},"doses":{"klasser":{"initial":"100 mg TID","target":"300-400 mg/day","max":"600 mg/day","note":"Narrow therapeutic index; level 10-20 mcg/mL"},"okeson":{"initial":"100 mg TID","target":"300 mg/day","max":"600 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Gingival hyperplasia (OFP-relevant), nystagmus, ataxia, diplopia, hirsutism, osteoporosis, teratogenicity","ci":"Concurrent delavirdine; many DDIs","bbw":"None","notes":"Gingival hyperplasia is classic OFP/dental manifestation"},{"id":"d16","name":"Baclofen","generic":"baclofen","cls":"Muscle Relaxant","moa":"GABA-B receptor agonist at spinal interneurons; inhibits mono/polysynaptic reflexes; reduces muscle spasm","elim":"Renal (70-80% unchanged)","elimtype":"renal","dx":["TMD - Myalgia","Myofascial Pain","Trigeminal Neuralgia (TN)","Oromandibular Dystonia","Bruxism / Sleep Bruxism"],"lines":{"l1":"TN adjunct, muscle spasm","l2":"TMD myalgia, oromandibular dystonia adjunct","l3":"","adj":"Spasticity-related orofacial pain"},"doses":{"klasser":{"initial":"5 mg TID","target":"15-60 mg/day TID-QID","max":"80 mg/day","note":"Increase 5 mg/dose q3 days; NEVER stop abruptly"},"okeson":{"initial":"5 mg TID","target":"10-20 mg TID","max":"80 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":"Intrathecal pump for refractory spasticity"}},"ae":"Sedation, weakness, dizziness, nausea; abrupt withdrawal: seizures, hallucinations, autonomic instability","ci":"Abrupt discontinuation - must taper; caution in renal impairment","bbw":"None (abrupt withdrawal clinically critical)","notes":""},{"id":"d17","name":"Cyclobenzaprine","generic":"cyclobenzaprine HCl","cls":"Muscle Relaxant","moa":"Central alpha1 and 5-HT2 antagonism; reduces tonic somatic motor activity at brainstem level; TCA-like structure","elim":"Hepatic (CYP1A2, CYP3A4, CYP2D6)","elimtype":"hepatic","dx":["TMD - Myalgia","Myofascial Pain","Bruxism / Sleep Bruxism"],"lines":{"l1":"Acute muscle spasm (short-term 3 weeks or less)","l2":"Myofascial TMD adjunct","l3":"","adj":""},"doses":{"klasser":{"initial":"5 mg TID","target":"5-10 mg TID","max":"30 mg/day","note":"Limit to 3 weeks or less; TCA structural analog"},"okeson":{"initial":"5 mg TID","target":"5-10 mg TID","max":"30 mg/day","note":"2-3 weeks"},"other":{"initial":"","target":"","max":"","note":"Avoid in elderly - Beers Criteria"}},"ae":"Sedation, dry mouth, dizziness, anticholinergic effects, urinary retention","ci":"Concurrent MAOI, recent MI, cardiac arrhythmia, hyperthyroidism, angle-closure glaucoma; elderly","bbw":"None","notes":"TCA-like cardiac and anticholinergic risks"},{"id":"d18","name":"Tizanidine","generic":"tizanidine HCl","cls":"Muscle Relaxant","moa":"Central alpha2-adrenergic agonist; inhibits excitatory interneurons; reduces muscle tone","elim":"Hepatic (CYP1A2 - critical DDI)","elimtype":"hepatic","dx":["TMD - Myalgia","Myofascial Pain","Central Sensitization"],"lines":{"l1":"Spasticity, centrally-mediated muscle pain","l2":"Myofascial TMD","l3":"","adj":""},"doses":{"klasser":{"initial":"2 mg TID-QID","target":"4-8 mg TID","max":"36 mg/day","note":"CONTRAINDICATED with fluvoxamine and ciprofloxacin (CYP1A2)"},"okeson":{"initial":"2 mg TID","target":"4-8 mg TID","max":"36 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Sedation, dry mouth, hypotension, hepatotoxicity (monitor LFTs), weakness","ci":"Concurrent fluvoxamine or ciprofloxacin; severe hepatic impairment","bbw":"None","notes":"Monitor LFTs at baseline, 1, 3, 6 months"},{"id":"d19","name":"Methocarbamol","generic":"methocarbamol","cls":"Muscle Relaxant","moa":"CNS depressant; general CNS depression at interneuronal level in spinal cord","elim":"Hepatic","elimtype":"hepatic","dx":["TMD - Myalgia","Myofascial Pain","Acute Orofacial Pain"],"lines":{"l1":"Acute musculoskeletal pain and spasm","l2":"","l3":"","adj":"TMD acute flare"},"doses":{"klasser":{"initial":"1500 mg QID","target":"750-1000 mg QID","max":"6000 mg/day initial; 4500 mg/day maintenance","note":""},"okeson":{"initial":"750-1500 mg QID","target":"750 mg QID","max":"4500 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Sedation, dizziness, nausea, blurred vision; urine discoloration (benign)","ci":"Renal impairment (injection form); myasthenia gravis","bbw":"None","notes":""},{"id":"d20","name":"Clonazepam","generic":"clonazepam","cls":"Benzodiazepine","moa":"Positive allosteric modulator at GABA-A receptor; increases Cl- influx; anxiolytic, anticonvulsant, muscle relaxant","elim":"Hepatic (CYP3A4)","elimtype":"hepatic","dx":["Burning Mouth Syndrome (BMS)","Bruxism / Sleep Bruxism","TMD - Myalgia","Myofascial Pain","Post-Traumatic Trigeminal Neuropathy (PTTN)","Sleep Disturbance in Pain"],"lines":{"l1":"Burning mouth syndrome (topical swish-and-spit)","l2":"Sleep bruxism, anxiety in OFP","l3":"Neuropathic pain adjunct","adj":""},"doses":{"klasser":{"initial":"0.25 mg QHS","target":"0.25-1 mg BID","max":"4 mg/day","note":"Topical BMS: 0.5-1 mg dissolved, swish 3 min, spit TID - avoids systemic absorption"},"okeson":{"initial":"0.25 mg QHS","target":"0.5-2 mg QHS","max":"4 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":"Topical route preferred for BMS"}},"ae":"Sedation, cognitive impairment, tolerance, physical dependence, falls in elderly, respiratory depression","ci":"Severe hepatic impairment, acute narrow-angle glaucoma, concurrent opioids; substance use disorder history","bbw":"Serious CNS depression and death with concurrent opioids; dependence/abuse potential","notes":"Topical swish-and-spit avoids systemic absorption - preferred for BMS"},{"id":"d21","name":"Diazepam","generic":"diazepam","cls":"Benzodiazepine","moa":"Positive allosteric modulator at GABA-A receptor; long-acting with active metabolites","elim":"Hepatic (CYP2C19, CYP3A4)","elimtype":"hepatic","dx":["TMD - Myalgia","Myofascial Pain","Oromandibular Dystonia"],"lines":{"l1":"Acute muscle spasm","l2":"Anxiety in OFP, oromandibular dystonia adjunct","l3":"","adj":""},"doses":{"klasser":{"initial":"2 mg TID","target":"2-10 mg TID-QID","max":"40 mg/day","note":"Lower doses in elderly; accumulates due to long half-life"},"okeson":{"initial":"2 mg BID","target":"2-5 mg BID-TID","max":"20 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":"Beers Criteria - avoid in elderly"}},"ae":"Sedation, dependence, falls, respiratory depression, anterograde amnesia, paradoxical excitation","ci":"Severe hepatic impairment, acute narrow-angle glaucoma, myasthenia gravis, concurrent opioids","bbw":"Serious CNS depression and death with concurrent opioids; dependence/abuse potential","notes":""},{"id":"d22","name":"Sumatriptan","generic":"sumatriptan succinate","cls":"Triptans","moa":"5-HT1B/1D agonist; cranial vasoconstriction + reduces trigeminal nociception + reduces CGRP/substance P release","elim":"Hepatic (MAO-A)","elimtype":"hepatic","dx":["Migraine - Acute","Cluster Headache - Acute","Status Migrainosus"],"lines":{"l1":"Acute migraine, cluster headache (SQ route)","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"25-50 mg PO at onset","target":"50-100 mg PO; 6 mg SQ; 20 mg IN","max":"200 mg/day PO; 12 mg/day SQ","note":"Repeat x1 after 2 hr; limit 10 days/month (MOH prevention)"},"okeson":{"initial":"50 mg PO at onset","target":"50-100 mg PO","max":"200 mg/day","note":"6 mg SQ preferred for cluster"},"other":{"initial":"","target":"","max":"","note":"Onset: SQ (10 min) then IN (15 min) then PO (30-60 min)"}},"ae":"Chest tightness/pressure (triptan sensation), flushing, paresthesia, dizziness, injection site reactions","ci":"CAD, Prinzmetal angina, uncontrolled HTN, stroke/TIA, hemiplegic/basilar migraine, concurrent MAOI or ergotamine within 24 hr","bbw":"None","notes":"Prototype triptan; SQ most effective for cluster headache"},{"id":"d23","name":"Rizatriptan","generic":"rizatriptan benzoate","cls":"Triptans","moa":"5-HT1B/1D agonist; similar to sumatriptan; faster oral onset","elim":"Hepatic (MAO-A)","elimtype":"hepatic","dx":["Migraine - Acute"],"lines":{"l1":"Acute migraine","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"5-10 mg PO at onset","target":"10 mg PO","max":"30 mg/day","note":"Repeat after 2 hr; reduce to 5 mg if on propranolol"},"okeson":{"initial":"10 mg at onset","target":"10 mg","max":"30 mg/day","note":"MLT orally disintegrating useful for nausea"},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Dizziness, somnolence, chest tightness, nausea, dry mouth","ci":"CAD, uncontrolled HTN, stroke/TIA, hemiplegic/basilar migraine, concurrent MAOI or ergotamine","bbw":"None","notes":""},{"id":"d24","name":"Lasmiditan","generic":"lasmiditan","cls":"Ditan","moa":"Selective 5-HT1F receptor agonist; inhibits trigeminal nociception WITHOUT vasoconstriction; penetrates CNS","elim":"Hepatic (multiple pathways; not MAO-dependent)","elimtype":"hepatic","dx":["Migraine - Acute"],"lines":{"l1":"Acute migraine with cardiovascular contraindications to triptans","l2":"Triptan-refractory acute migraine","l3":"","adj":""},"doses":{"klasser":{"initial":"50 mg PO at onset","target":"100-200 mg PO","max":"200 mg/24 hr","note":"Do NOT drive 8+ hr after dose - Schedule V"},"okeson":{"initial":"50-100 mg PO","target":"100-200 mg PO","max":"200 mg/24 hr","note":""},"other":{"initial":"","target":"","max":"","note":"Schedule V - CNS side effects"}},"ae":"Dizziness, somnolence, paresthesia, sedation, cognitive impairment; significant CNS depression","ci":"Do NOT drive 8+ hr post-dose; caution with CNS depressants; serotonin syndrome risk","bbw":"None (Schedule V; driving restriction critical)","notes":"Brand: Reyvow; safe in cardiovascular disease (no vasoconstriction); Schedule V"},{"id":"d25","name":"Erenumab","generic":"erenumab-aooe","cls":"CGRP mAb","moa":"Monoclonal antibody antagonist at CGRP receptor; blocks CGRP-mediated vasodilation and trigeminal activation","elim":"Endogenous proteolysis","elimtype":"other","dx":["Migraine - Prophylaxis","Chronic Migraine"],"lines":{"l1":"Episodic and chronic migraine prevention (AHS 2024: first-line option)","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"70 mg SQ monthly","target":"70 mg SQ monthly","max":"140 mg SQ monthly","note":"Increase to 140 mg for inadequate response; onset within 1 month"},"okeson":{"initial":"70 mg SQ monthly","target":"70-140 mg SQ monthly","max":"140 mg/month","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Injection site reactions, constipation (sometimes severe), hypertension, hypersensitivity","ci":"Known hypersensitivity; severe/refractory constipation (relative)","bbw":"None","notes":"CGRP receptor mAb; AHS 2024: CGRP therapies are first-line preventive option"},{"id":"d26","name":"Fremanezumab","generic":"fremanezumab-vfrm","cls":"CGRP mAb","moa":"Monoclonal antibody targeting CGRP ligand (not receptor); prevents CGRP binding; monthly or quarterly dosing","elim":"Endogenous proteolysis","elimtype":"other","dx":["Migraine - Prophylaxis","Chronic Migraine"],"lines":{"l1":"Episodic and chronic migraine prevention","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"225 mg SQ monthly","target":"225 mg monthly","max":"225 mg/month or 675 mg/quarter","note":"Quarterly: 675 mg SQ x1 injection"},"okeson":{"initial":"225 mg SQ monthly","target":"225 mg monthly or 675 mg quarterly","max":"675 mg/quarter","note":""},"other":{"initial":"","target":"","max":"","note":"Anti-CGRP ligand mAb"}},"ae":"Injection site reactions, hypersensitivity","ci":"Known hypersensitivity","bbw":"None","notes":"Brand: Ajovy; flexible monthly or quarterly dosing"},{"id":"d27","name":"Galcanezumab","generic":"galcanezumab-gnlm","cls":"CGRP mAb","moa":"Monoclonal antibody targeting CGRP ligand; blocks CGRP in trigeminal ganglia; only CGRP mAb for cluster headache","elim":"Endogenous proteolysis","elimtype":"other","dx":["Migraine - Prophylaxis","Chronic Migraine","Cluster Headache - Prophylaxis"],"lines":{"l1":"Episodic and chronic migraine prevention; cluster headache prevention","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"240 mg SQ loading (2x120 mg)","target":"120 mg SQ monthly","max":"120 mg/month","note":"Only CGRP mAb with FDA indication for cluster headache"},"okeson":{"initial":"240 mg SQ loading","target":"120 mg SQ monthly","max":"120 mg/month","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Injection site reactions, hypersensitivity, constipation","ci":"Known hypersensitivity","bbw":"None","notes":"Brand: Emgality; ONLY CGRP mAb FDA-approved for cluster headache prophylaxis"},{"id":"d28","name":"Eptinezumab","generic":"eptinezumab-jjmr","cls":"CGRP mAb","moa":"IV monoclonal antibody targeting CGRP ligand; fastest onset of all CGRP biologics due to IV delivery","elim":"Endogenous proteolysis","elimtype":"other","dx":["Migraine - Prophylaxis","Chronic Migraine","Status Migrainosus"],"lines":{"l1":"Episodic and chronic migraine prevention (rapid onset)","l2":"Status migrainosus (off-label)","l3":"","adj":""},"doses":{"klasser":{"initial":"100 mg IV over 30 min q3 months","target":"100-300 mg IV q3 months","max":"300 mg IV/quarter","note":"Only IV CGRP mAb; administered quarterly in clinic"},"okeson":{"initial":"100 mg IV q3 months","target":"300 mg IV q3 months","max":"300 mg IV/quarter","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Hypersensitivity reactions (infusion-related), nasopharyngitis, fatigue","ci":"Known hypersensitivity; monitor during infusion","bbw":"None","notes":"Brand: Vyepti; only IV CGRP mAb; fastest onset of all CGRP preventives"},{"id":"d29","name":"Rimegepant","generic":"rimegepant","cls":"Gepant","moa":"Small-molecule CGRP receptor antagonist; dual use: acute treatment AND prevention; no vasoconstriction; no MOH risk","elim":"Hepatic (CYP3A4)","elimtype":"hepatic","dx":["Migraine - Acute","Migraine - Prophylaxis"],"lines":{"l1":"Acute migraine; episodic migraine prevention (only gepant for both)","l2":"Triptan-refractory or triptan-contraindicated migraine","l3":"","adj":""},"doses":{"klasser":{"initial":"75 mg ODT at onset (acute)","target":"75 mg ODT QOD (prevention)","max":"75 mg/24 hr","note":"Orally disintegrating tablet under tongue; unique dual acute + preventive indication"},"okeson":{"initial":"75 mg ODT at onset","target":"75 mg ODT QOD prevention","max":"75 mg/24 hr","note":""},"other":{"initial":"","target":"","max":"","note":"Safe in cardiovascular disease; no MOH association"}},"ae":"Nausea, somnolence, urinary tract infection; generally well tolerated","ci":"Strong CYP3A4 inhibitors; severe hepatic impairment","bbw":"None","notes":"Brand: Nurtec ODT; ONLY gepant with BOTH acute and preventive FDA indication"},{"id":"d30","name":"Ubrogepant","generic":"ubrogepant","cls":"Gepant","moa":"Small-molecule CGRP receptor antagonist; acute migraine treatment; may be effective in prodrome phase","elim":"Hepatic (CYP3A4)","elimtype":"hepatic","dx":["Migraine - Acute"],"lines":{"l1":"Acute migraine treatment","l2":"Triptan-contraindicated or refractory migraine","l3":"","adj":""},"doses":{"klasser":{"initial":"50 mg PO at onset","target":"50-100 mg PO","max":"200 mg/day","note":"May repeat 2+ hr after initial; reduce to 50 mg with moderate CYP3A4 inhibitor"},"okeson":{"initial":"50 mg PO","target":"50-100 mg PO","max":"200 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":"Safe with CGRP mAbs concurrently"}},"ae":"Nausea, somnolence, dry mouth; generally mild","ci":"Strong CYP3A4 inhibitors (contraindicated); severe hepatic/renal impairment","bbw":"None","notes":"Brand: Ubrelvy; no vasoconstriction - safe in vascular disease"},{"id":"d31","name":"Atogepant","generic":"atogepant","cls":"Gepant","moa":"Small-molecule CGRP receptor antagonist; oral daily preventive; first gepant approved solely for migraine prevention","elim":"Hepatic (CYP3A4)","elimtype":"hepatic","dx":["Migraine - Prophylaxis","Chronic Migraine"],"lines":{"l1":"Episodic and chronic migraine prevention","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"10 mg QD","target":"30-60 mg QD","max":"60 mg/day","note":"Three doses: 10, 30, 60 mg QD; taken daily regardless of migraine occurrence"},"okeson":{"initial":"10-30 mg QD","target":"60 mg QD","max":"60 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":"Safe to combine with ubrogepant for acute rescue"}},"ae":"Nausea, constipation, fatigue; no hepatotoxicity in trials","ci":"Strong CYP3A4 inhibitors (dose reduce); strong CYP3A4 inducers (avoid); severe hepatic/renal impairment","bbw":"None","notes":"Brand: Qulipta; AHS 2024: CGRP therapies first-line for migraine prevention"},{"id":"d32","name":"Zavegepant","generic":"zavegepant","cls":"Gepant","moa":"Small-molecule CGRP receptor antagonist delivered intranasally; rapid onset via nasal mucosa; no vasoconstriction","elim":"Hepatic (CYP3A4)","elimtype":"hepatic","dx":["Migraine - Acute"],"lines":{"l1":"Acute migraine treatment (especially with nausea/vomiting)","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"10 mg IN (1 spray, 1 nostril) at onset","target":"10 mg IN","max":"10 mg/24 hr (max 8 uses/month)","note":"IN route bypasses GI - useful when oral not feasible"},"okeson":{"initial":"10 mg IN at onset","target":"10 mg IN","max":"10 mg/24 hr","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Nasal discomfort, dysgeusia (taste disturbance), nasal congestion, nausea","ci":"Strong CYP3A4 inhibitors; severe hepatic impairment","bbw":"None","notes":"Brand: Zavzpret; only intranasal gepant; preferred when nausea prevents oral dosing"},{"id":"d33","name":"OnabotulinumtoxinA","generic":"botulinum toxin type A","cls":"Botulinum Toxin","moa":"Cleaves SNAP-25; blocks presynaptic ACh release at NMJ; also inhibits peripheral CGRP, substance P, glutamate from sensory neurons","elim":"Local protein degradation at injection site","elimtype":"local","dx":["Chronic Migraine","Oromandibular Dystonia","Bruxism / Sleep Bruxism","TMD - Myalgia","Myofascial Pain"],"lines":{"l1":"Chronic migraine prophylaxis (15+ headache days/month)","l2":"Oromandibular dystonia","l3":"Masseter hypertrophy, refractory bruxism (off-label)","adj":"Temporalis for myofascial pain"},"doses":{"klasser":{"initial":"155 U IM (PREEMPT protocol)","target":"155-195 U per session","max":"195 U per session q12 weeks","note":"31 fixed injection sites per PREEMPT; OMD: 5-30 U/site (variable)"},"okeson":{"initial":"155 U minimum","target":"155-195 U per session","max":"195 U/session q12 weeks","note":""},"other":{"initial":"","target":"","max":"","note":"NOT FDA-approved for TMD or bruxism - off-label use only"}},"ae":"Injection site pain/bruising, muscle weakness, dysphagia (perioral), ptosis, neck pain, flu-like symptoms","ci":"Infection at injection site, known hypersensitivity, myasthenia gravis, Lambert-Eaton syndrome","bbw":"Toxin spread: dysphagia, respiratory failure, death","notes":""},{"id":"d34","name":"Capsaicin","generic":"capsaicin","cls":"Topical","moa":"TRPV1 agonist; initial activation then desensitization; depletion of substance P from sensory terminals","elim":"Local (negligible systemic absorption)","elimtype":"local","dx":["Postherpetic Neuralgia (PHN)","Burning Mouth Syndrome (BMS)","Post-Traumatic Trigeminal Neuropathy (PTTN)"],"lines":{"l1":"PHN, localized neuropathic pain","l2":"Burning mouth syndrome","l3":"","adj":""},"doses":{"klasser":{"initial":"0.025% cream TID-QID","target":"0.025-0.075% cream TID-QID","max":"As tolerated","note":"8% patch (Qutenza) q3 months by trained provider; requires topical anesthetic pretreatment"},"okeson":{"initial":"0.025% cream TID-QID","target":"0.025-0.075% TID-QID","max":"As tolerated","note":""},"other":{"initial":"","target":"","max":"","note":"8% patch contraindicated on face/head near eyes"}},"ae":"Burning/stinging at site (transient, may be severe), erythema; 8% patch: intense initial burning","ci":"Broken or inflamed skin; avoid mucous membranes; 8% patch contraindicated near eyes/face","bbw":"None","notes":""},{"id":"d35","name":"Lidocaine 5% patch","generic":"lidocaine 5%","cls":"Topical","moa":"Na+ channel blockade at peripheral sensory terminals; reduces ectopic discharge from sensitized nociceptors","elim":"Hepatic (absorbed fraction ~3%)","elimtype":"local","dx":["Postherpetic Neuralgia (PHN)","Post-Traumatic Trigeminal Neuropathy (PTTN)"],"lines":{"l1":"PHN, localized neuropathic orofacial pain","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"1 patch 12 hr/day","target":"1-3 patches 12 hr/day","max":"3 patches per application","note":"12 hr on / 12 hr off cycle"},"okeson":{"initial":"1 patch","target":"1-3 patches 12 hr on/off","max":"3 patches/application","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Local skin reactions (erythema, edema, rash); systemic toxicity rare","ci":"Known amide anesthetic allergy; do not apply to broken or inflamed skin","bbw":"None","notes":""},{"id":"d36","name":"Compounded topical OFP","generic":"ketamine/gabapentin/amitriptyline/lidocaine","cls":"Topical","moa":"Multi-agent: Na+ channel blockade, Ca2+ channel modulation, NMDA antagonism; local peripheral action","elim":"Local (minimal systemic)","elimtype":"local","dx":["Post-Traumatic Trigeminal Neuropathy (PTTN)","Postherpetic Neuralgia (PHN)","Burning Mouth Syndrome (BMS)","Persistent Idiopathic Facial Pain (PIFP)","Atypical Odontalgia"],"lines":{"l1":"","l2":"Post-traumatic trigeminal neuropathy, localized neuropathic pain","l3":"PHN (alternative to lidocaine patch)","adj":""},"doses":{"klasser":{"initial":"Apply thin layer TID-QID","target":"TID-QID as tolerated","max":"As directed by formulation","note":"Common: ketamine 4% + gabapentin 6% gel; amitriptyline 2% + ketamine 2% cream; lidocaine 4% gel"},"okeson":{"initial":"Apply TID-QID","target":"TID-QID","max":"As formulated","note":""},"other":{"initial":"","target":"","max":"","note":"Custom stent delivery improves intraoral contact"}},"ae":"Local skin/mucosal irritation; minimal systemic effects","ci":"Allergy to component agents; open wounds","bbw":"None","notes":"Evidence base limited; custom stents improve intraoral contact time"},{"id":"d37","name":"Prednisone","generic":"prednisone","cls":"Corticosteroid","moa":"Glucocorticoid receptor agonist; inhibits NF-kB; reduces IL-1, IL-6, TNF-alpha; inhibits phospholipase A2","elim":"Hepatic (CYP3A4)","elimtype":"hepatic","dx":["TMD - Arthralgia","TMD - Degenerative Joint Disease","Giant Cell Arteritis","Cluster Headache - Prophylaxis","Oral Lichen Planus"],"lines":{"l1":"Giant cell arteritis, acute inflammatory TMJ flares","l2":"Oral lichen planus, cluster headache bridging","l3":"","adj":"Short-term anti-inflammatory adjunct"},"doses":{"klasser":{"initial":"20-40 mg QD (TMJ); 1 mg/kg/day (GCA)","target":"Taper to lowest effective dose","max":"60-80 mg/day (GCA)","note":"Always taper; PPI gastroprotection for prolonged use"},"okeson":{"initial":"20-40 mg QD","target":"Taper over 1-2 weeks","max":"60 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Hyperglycemia, osteoporosis, HPA suppression, GI ulceration, immunosuppression, mood disturbance, HTN, cataracts, weight gain","ci":"Systemic fungal infection; live vaccines during high-dose therapy; uncontrolled DM (relative)","bbw":"None","notes":"GCA requires immediate high-dose therapy to prevent vision loss"},{"id":"d38","name":"Dexamethasone","generic":"dexamethasone","cls":"Corticosteroid","moa":"High-potency glucocorticoid (25x hydrocortisone); no mineralocorticoid activity","elim":"Hepatic (CYP3A4)","elimtype":"hepatic","dx":["TMD - Arthralgia","TMD - Degenerative Joint Disease"],"lines":{"l1":"Intra-articular TMJ injection, nerve root inflammation","l2":"","l3":"","adj":"Perioperative anti-inflammatory"},"doses":{"klasser":{"initial":"0.5-4 mg (intra-articular)","target":"0.5-4 mg per injection","max":"Varies by indication","note":"No mineralocorticoid activity; 25x potency vs hydrocortisone"},"okeson":{"initial":"0.5-4 mg intra-articular","target":"0.5-4 mg","max":"Varies","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Same class as prednisone; prolonged HPA suppression; no Na+/water retention","ci":"Systemic fungal infection; active untreated infection at injection site","bbw":"None","notes":""},{"id":"d39","name":"Triamcinolone acetonide","generic":"triamcinolone acetonide","cls":"Corticosteroid","moa":"Intermediate-potency glucocorticoid depot formulation; sustained local anti-inflammatory effect","elim":"Hepatic","elimtype":"hepatic","dx":["TMD - Arthralgia","Oral Lichen Planus","Recurrent Aphthous Stomatitis"],"lines":{"l1":"Intra-articular TMJ injection; oral mucosal lesions (OLP, aphthous)","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"5-10 mg intra-articular","target":"10-20 mg per injection","max":"20 mg per site","note":"Intralesional: 5-10 mg/mL; topical paste (Kenalog-in-Orabase) TID-QID"},"okeson":{"initial":"10 mg intra-articular","target":"10 mg per session","max":"20 mg/site","note":"Topical paste for OLP"},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Local tissue atrophy, skin depigmentation, adrenal suppression (repeated injections)","ci":"Systemic fungal infection; active infection at injection site; infected joint","bbw":"None","notes":"Kenalog-in-Orabase paste for mucosal lesions"},{"id":"d40","name":"Clotrimazole","generic":"clotrimazole","cls":"Antifungal","moa":"Azole antifungal; inhibits CYP51; reduces ergosterol synthesis; disrupts fungal cell membrane","elim":"Local (minimal systemic absorption with troche)","elimtype":"local","dx":["Oral Candidiasis","Angular Cheilitis","Xerostomia / Hyposalivation"],"lines":{"l1":"Oral candidiasis (angular cheilitis, denture stomatitis, xerostomia-related)","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"10 mg troche 5x/day","target":"10 mg troche 5x/day x14 days","max":"5 troches/day","note":"Dissolve slowly in mouth; minimal systemic absorption"},"okeson":{"initial":"10 mg troche 5x/day","target":"10 mg troche 5x/day","max":"5 troches/day","note":"x14 days"},"other":{"initial":"","target":"","max":"","note":"Preferred for local oral candidiasis"}},"ae":"Nausea (from swallowing), abnormal LFTs (rare), GI upset","ci":"Known hypersensitivity","bbw":"None","notes":""},{"id":"d41","name":"Nystatin","generic":"nystatin","cls":"Antifungal","moa":"Polyene antifungal; binds ergosterol in fungal cell membrane; forms pores; K+ leakage; cell death; not systemically absorbed","elim":"Local (fecal excretion - not absorbed)","elimtype":"local","dx":["Oral Candidiasis","Angular Cheilitis"],"lines":{"l1":"Oral candidiasis (first-line, local)","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"400,000-600,000 units QID","target":"400,000-600,000 units QID x14 days","max":"2,400,000 units/day","note":"Swish-and-swallow; pastille: 200,000 units QID"},"okeson":{"initial":"400,000-600,000 units QID","target":"400,000-600,000 units QID x14 days","max":"2,400,000 units/day","note":""},"other":{"initial":"","target":"","max":"","note":"Polyene - no DDIs; not systemically absorbed"}},"ae":"Nausea, GI upset at high doses, oral irritation","ci":"Known hypersensitivity","bbw":"None","notes":""},{"id":"d42","name":"Fluconazole","generic":"fluconazole","cls":"Antifungal","moa":"Azole antifungal; inhibits CYP51 ergosterol synthesis; systemic absorption unlike nystatin/clotrimazole","elim":"Renal (80% unchanged)","elimtype":"renal","dx":["Oral Candidiasis"],"lines":{"l1":"Refractory or systemic oral candidiasis","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"100-200 mg QD","target":"100-200 mg QD x7-14 days","max":"400 mg/day","note":"Single 150 mg dose for uncomplicated oropharyngeal candidiasis"},"okeson":{"initial":"100-200 mg QD","target":"100-200 mg QD x7-14 days","max":"400 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":"CYP2C9/3A4 inhibitor - significant DDIs"}},"ae":"Nausea, headache, hepatotoxicity, QTc prolongation, rash; many DDIs","ci":"Concurrent QT-prolonging drugs; concurrent cisapride/terfenadine; severe hepatic impairment","bbw":"None","notes":""},{"id":"d43","name":"Hydroxyzine","generic":"hydroxyzine HCl / pamoate","cls":"Antihistamine","moa":"H1 receptor antagonist; also M1, alpha1, and 5-HT antagonism; anxiolytic via subcortical CNS depression (not GABA-mediated)","elim":"Hepatic (CYP3A4, CYP2D6)","elimtype":"hepatic","dx":["TMD - Myalgia","Myofascial Pain","Sleep Disturbance in Pain","Burning Mouth Syndrome (BMS)"],"lines":{"l1":"Anxiety adjunct in OFP, pruritus","l2":"Sleep disturbance with anxiety component","l3":"","adj":"Adjunct for pain with anxiety"},"doses":{"klasser":{"initial":"25 mg TID (HCl)","target":"25-50 mg TID-QID","max":"400 mg/day","note":"25-100 mg QHS (pamoate) for sleep; non-scheduled BZD alternative"},"okeson":{"initial":"25 mg TID","target":"25-50 mg TID-QID","max":"400 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Sedation, dry mouth, anticholinergic effects, QTc prolongation","ci":"Prolonged QTc or concurrent QT-prolonging drugs; early pregnancy (teratogenic); angle-closure glaucoma (relative)","bbw":"None","notes":"Non-scheduled; no tolerance or physical dependence"},{"id":"d44","name":"Propranolol","generic":"propranolol HCl","cls":"Beta-Blocker","moa":"Non-selective beta1/beta2 blocker; reduces adrenergic tone; migraine prevention via reduces cortical spreading depression and sympathetic tone","elim":"Hepatic (CYP1A2, CYP2D6)","elimtype":"hepatic","dx":["Migraine - Prophylaxis","Chronic Migraine","Cluster Headache - Prophylaxis"],"lines":{"l1":"Migraine prophylaxis (FDA-approved)","l2":"","l3":"","adj":"Anxiety-associated headache"},"doses":{"klasser":{"initial":"40 mg BID or 80 mg QD (ER)","target":"80-160 mg/day","max":"240 mg/day","note":"Must taper - abrupt stop causes rebound angina/tachycardia; reduces rizatriptan to 5 mg"},"okeson":{"initial":"40 mg BID","target":"80-160 mg/day","max":"240 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Bradycardia, hypotension, fatigue, depression, cold extremities, masking hypoglycemia, bronchospasm","ci":"Asthma/COPD (bronchospasm), decompensated heart failure, heart block, concurrent MAOIs, Raynaud (relative)","bbw":"None (abrupt discontinuation warning)","notes":"FDA-approved migraine prophylaxis; reduces rizatriptan to 5 mg"},{"id":"d45","name":"Metoprolol","generic":"metoprolol succinate/tartrate","cls":"Beta-Blocker","moa":"Selective beta1 blocker; reduces adrenergic tone; migraine prevention; fewer bronchospasm risks than propranolol","elim":"Hepatic (CYP2D6)","elimtype":"hepatic","dx":["Migraine - Prophylaxis","Chronic Migraine"],"lines":{"l1":"Migraine prophylaxis (preferred beta-blocker in mild respiratory disease)","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"25-50 mg QD (succinate ER)","target":"100-200 mg QD","max":"400 mg/day","note":"Succinate ER preferred; must taper"},"okeson":{"initial":"50 mg QD","target":"100-200 mg QD","max":"400 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Bradycardia, fatigue, dizziness, depression, cold extremities; less bronchospasm than propranolol","ci":"Decompensated heart failure, severe bradycardia, heart block","bbw":"None (abrupt discontinuation warning)","notes":"Cardioselective beta1 blocker; better tolerated in mild respiratory disease"},{"id":"d46","name":"Naproxen sodium","generic":"naproxen sodium","cls":"NSAID","moa":"Non-selective COX-1/COX-2 inhibitor; reduces prostaglandin synthesis; anti-inflammatory, analgesic, antipyretic","elim":"Hepatic (CYP2C9)","elimtype":"hepatic","dx":["Migraine - Acute","TMD - Arthralgia","Tension-Type Headache","Acute Orofacial Pain"],"lines":{"l1":"Acute migraine (especially combined with sumatriptan), TMJ inflammatory pain","l2":"Menstrual migraine prophylaxis (start 2 days prior)","l3":"","adj":""},"doses":{"klasser":{"initial":"500 mg PO at onset","target":"500-550 mg BID","max":"1375 mg/day (Rx)","note":"Naproxen/sumatriptan combo (Treximet) for migraine; take with food"},"okeson":{"initial":"500 mg PO","target":"500 mg BID","max":"1000 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"GI upset/ulceration, renal impairment, fluid retention, HTN, cardiovascular risk (prolonged), platelet inhibition","ci":"Active GI ulcer, severe renal/hepatic impairment, NSAID allergy/aspirin triad, third trimester pregnancy","bbw":"Cardiovascular thrombotic events; GI bleeding/ulceration/perforation","notes":"Longer half-life than ibuprofen; useful for menstrual migraine prevention"},{"id":"d47","name":"Ibuprofen","generic":"ibuprofen","cls":"NSAID","moa":"Non-selective COX-1/COX-2 inhibitor; reduces prostaglandins; analgesic, anti-inflammatory, antipyretic","elim":"Hepatic (CYP2C9)","elimtype":"hepatic","dx":["Migraine - Acute","TMD - Arthralgia","Tension-Type Headache","Acute Orofacial Pain"],"lines":{"l1":"Acute mild-moderate migraine, TMJ inflammatory pain, acute MSK pain","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"400 mg PO at onset","target":"400-600 mg TID-QID","max":"3200 mg/day (Rx); 1200 mg/day (OTC)","note":"Take with food; limit to shortest effective duration"},"okeson":{"initial":"400-600 mg PO","target":"400-800 mg TID","max":"3200 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"GI upset, ulceration, renal impairment, fluid retention, cardiovascular risk, platelet inhibition","ci":"Active GI ulcer, severe renal/hepatic impairment, NSAID allergy, third trimester pregnancy","bbw":"Cardiovascular thrombotic events; GI bleeding/ulceration","notes":""},{"id":"d48","name":"Indomethacin","generic":"indomethacin","cls":"NSAID","moa":"Potent non-selective COX-1/COX-2 inhibitor; also carbonic anhydrase inhibition; diagnostic/therapeutic for indomethacin-responsive headaches","elim":"Hepatic","elimtype":"hepatic","dx":["Hemicrania Continua","Paroxysmal Hemicrania","Primary Stabbing Headache","Hypnic Headache"],"lines":{"l1":"Hemicrania continua (diagnostic and therapeutic - 100% responsive), paroxysmal hemicrania","l2":"Primary stabbing headache, hypnic headache (alternative)","l3":"","adj":""},"doses":{"klasser":{"initial":"25 mg TID with food","target":"75-150 mg/day divided","max":"200 mg/day","note":"Complete pain relief confirms HC or PH diagnosis (pathognomonic); always prescribe PPI"},"okeson":{"initial":"25 mg TID","target":"75-150 mg/day","max":"200 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":"Diagnostic trial: complete relief confirms HC/PH"}},"ae":"GI irritation (high rate - take with food/PPI), headache, dizziness, renal impairment, CNS effects","ci":"Active GI ulcer, NSAID allergy, severe renal impairment; PPI co-prescription strongly recommended","bbw":"Cardiovascular thrombotic events; GI bleeding/ulceration/perforation","notes":"DIAGNOSTIC DRUG: complete indomethacin response is PATHOGNOMONIC for hemicrania continua and paroxysmal hemicrania"},{"id":"d49","name":"Celecoxib","generic":"celecoxib","cls":"NSAID","moa":"Selective COX-2 inhibitor; reduces prostaglandins with less COX-1 inhibition (GI-sparing)","elim":"Hepatic (CYP2C9)","elimtype":"hepatic","dx":["TMD - Arthralgia","TMD - Degenerative Joint Disease"],"lines":{"l1":"Inflammatory joint pain (TMJ arthritis) with GI risk factors","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"100 mg QD-BID","target":"200 mg BID","max":"400 mg/day","note":"GI-sparing vs non-selective NSAIDs; caution in sulfonamide allergy"},"okeson":{"initial":"100-200 mg QD","target":"200 mg BID","max":"400 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Cardiovascular risk (dose/duration-dependent), fluid retention, renal impairment","ci":"Sulfonamide allergy, NSAID allergy/aspirin triad, post-CABG, severe renal/hepatic impairment","bbw":"Cardiovascular thrombotic events; GI bleeding (less than non-selective)","notes":""},{"id":"d50","name":"Dihydroergotamine (DHE)","generic":"dihydroergotamine mesylate","cls":"Ergotamine","moa":"5-HT1B/1D agonist + alpha-adrenergic vasoconstriction + dopamine receptor effects; more potent vasoconstrictor than triptans","elim":"Hepatic (CYP3A4)","elimtype":"hepatic","dx":["Status Migrainosus","Migraine - Acute","Cluster Headache - Acute"],"lines":{"l1":"Status migrainosus (IV/IM), refractory migraine, cluster headache (nasal spray)","l2":"Acute migraine not responding to triptans","l3":"","adj":""},"doses":{"klasser":{"initial":"0.5 mg IV/IM/SQ; 1 spray (0.5 mg) IN per nostril","target":"1 mg IV/IM; 2 mg IN (1 mg per nostril)","max":"3 mg/day IV; 4 mg/day IN","note":"IV protocol: premedicate with antiemetic; give slowly over 2-3 min"},"okeson":{"initial":"1 mg IM/IV","target":"1-2 mg IM/IV","max":"3 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":"Nasal spray (Migranal/Trudhesa): 0.5 mg/spray"}},"ae":"Nausea/vomiting (premedicate), vasoconstriction, chest tightness, limb ischemia (overdose), ergotism","ci":"CAD, uncontrolled HTN, peripheral vascular disease, hepatic/renal impairment, concurrent CYP3A4 inhibitors, pregnancy, concurrent triptans within 24 hr","bbw":"None (ergotism/vasospasm warning)","notes":"Always premedicate with antiemetic (metoclopramide or prochlorperazine)"},{"id":"d51","name":"Tramadol","generic":"tramadol HCl","cls":"Opioid","moa":"Dual: (1) weak mu-opioid agonist; (2) NE + 5-HT reuptake inhibition; central analgesia via descending modulation","elim":"Hepatic (CYP2D6 to active M1 metabolite; CYP3A4)","elimtype":"hepatic","dx":["Persistent Idiopathic Facial Pain (PIFP)","Post-Traumatic Trigeminal Neuropathy (PTTN)","Acute Orofacial Pain"],"lines":{"l1":"","l2":"Moderate chronic pain (non-first-line in OFP)","l3":"Refractory orofacial pain adjunct","adj":""},"doses":{"klasser":{"initial":"50 mg q4-6h PRN","target":"50-100 mg q4-6h","max":"400 mg/day (300 mg/day elderly)","note":"Schedule IV; serotonin syndrome risk with SSRIs/SNRIs"},"okeson":{"initial":"50 mg q4-6h","target":"50-100 mg q4-6h","max":"400 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Nausea, constipation, dizziness, sedation, seizures (dose-dependent), serotonin syndrome, dependence","ci":"Concurrent MAOI, SSRIs/SNRIs (serotonin syndrome), seizure disorder, severe hepatic/renal impairment","bbw":"Addiction/abuse; respiratory depression; neonatal withdrawal; serotonin syndrome; seizures","notes":""},{"id":"d52","name":"Naltrexone (LDN)","generic":"naltrexone HCl","cls":"Opioid","moa":"Standard: competitive opioid antagonist. Low-dose (LDN): transient opioid receptor blockade; increases endogenous opioids; TLR4 antagonism on microglia; reduces neuroinflammation","elim":"Hepatic (6-beta-naltrexol active metabolite)","elimtype":"hepatic","dx":["Fibromyalgia","Central Sensitization","Persistent Idiopathic Facial Pain (PIFP)"],"lines":{"l1":"","l2":"Fibromyalgia, central sensitization (LDN - off-label)","l3":"Complex/refractory chronic pain","adj":""},"doses":{"klasser":{"initial":"1.5 mg QHS (LDN)","target":"3-4.5 mg QHS","max":"4.5 mg/day (LDN)","note":"Must be compounded; standard opioid/alcohol use disorder: 50 mg QD"},"okeson":{"initial":"1.5 mg QHS","target":"3-4.5 mg QHS","max":"4.5 mg/day","note":"LDN protocol"},"other":{"initial":"","target":"","max":"","note":"Glial modulator at LDN - distinct from opioid antagonism at standard doses"}},"ae":"LDN: nausea (initial), insomnia, vivid dreams. Standard: hepatotoxicity risk, precipitates withdrawal in opioid-dependent patients","ci":"Current opioid use/dependence (standard dose precipitates withdrawal); acute hepatitis; hepatic failure","bbw":"None","notes":""},{"id":"d53","name":"Ketamine (IV/IN)","generic":"ketamine HCl","cls":"IV/Infusion","moa":"NMDA receptor antagonist; reduces central sensitization; subanesthetic doses target pain pathways; modulates descending inhibitory pathways","elim":"Hepatic (CYP3A4, CYP2B6)","elimtype":"hepatic","dx":["Central Sensitization","Persistent Idiopathic Facial Pain (PIFP)","Post-Traumatic Trigeminal Neuropathy (PTTN)","Sympathetically-Maintained Pain"],"lines":{"l1":"","l2":"Refractory chronic pain, central sensitization, CRPS","l3":"Treatment-resistant neuropathic orofacial pain","adj":""},"doses":{"klasser":{"initial":"0.1-0.5 mg/kg IV (subanesthetic)","target":"0.3-0.5 mg/kg IV over 40 min","max":"Variable; series of 4-6 infusions","note":"Subanesthetic IV infusions; IN ketamine 0.5-1 mg/kg for breakthrough; requires monitored setting"},"okeson":{"initial":"0.3 mg/kg IV subanesthetic","target":"0.5 mg/kg IV per session","max":"Variable by protocol","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Dissociation, hallucinations, dizziness, nausea, hypertension, tachycardia, bladder toxicity (chronic), abuse potential","ci":"Uncontrolled HTN, history of psychosis, active substance use disorder, severe cardiovascular disease","bbw":"None (Schedule III)","notes":"Requires monitored setting; emerging role in refractory OFP/central sensitization"},{"id":"d54","name":"Lidocaine IV infusion","generic":"lidocaine HCl IV","cls":"IV/Infusion","moa":"Na+ channel blockade systemically; reduces ectopic neuronal discharge; also NMDA antagonism at systemic doses","elim":"Hepatic (CYP3A4, CYP1A2)","elimtype":"hepatic","dx":["Post-Traumatic Trigeminal Neuropathy (PTTN)","Persistent Idiopathic Facial Pain (PIFP)","Status Migrainosus"],"lines":{"l1":"","l2":"Refractory neuropathic pain; IV adjunct for status migrainosus","l3":"Refractory orofacial neuropathic pain","adj":""},"doses":{"klasser":{"initial":"1-2 mg/kg IV bolus (slow)","target":"1.5-5 mg/kg IV infusion over 1-4 hr","max":"Variable; requires cardiac monitoring","note":"Continuous cardiac monitoring required; therapeutic level 1.5-5 mcg/mL"},"okeson":{"initial":"1-1.5 mg/kg IV","target":"1.5-3 mg/kg IV per session","max":"Variable by protocol","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Dizziness, perioral numbness, tinnitus, cardiac arrhythmia (toxic levels), CNS toxicity/seizures (high levels)","ci":"Heart block, severe hepatic impairment, lidocaine allergy; requires cardiac monitoring","bbw":"None","notes":"Narrow therapeutic window; requires monitored infusion setting"},{"id":"d55","name":"Magnesium sulfate (IV)","generic":"magnesium sulfate","cls":"IV/Infusion","moa":"NMDA receptor antagonist (Mg2+ blocks NMDA channel); reduces CGRP release; antagonizes Ca2+; reduces cortical spreading depression","elim":"Renal","elimtype":"renal","dx":["Migraine - Acute","Status Migrainosus"],"lines":{"l1":"IV migraine abortive (especially with aura)","l2":"Status migrainosus adjunct","l3":"","adj":"Oral magnesium for migraine prevention in deficient patients"},"doses":{"klasser":{"initial":"1-2 g IV over 15-60 min","target":"1-2 g IV per infusion","max":"2 g per infusion","note":"Oral magnesium glycinate 400-600 mg/day for prevention"},"okeson":{"initial":"1 g IV","target":"1-2 g IV","max":"2 g/infusion","note":""},"other":{"initial":"","target":"","max":"","note":"Oral magnesium glycinate 200-400 mg BID for migraine prevention"}},"ae":"Flushing, warmth, hypotension, respiratory depression (toxic levels), hyporeflexia","ci":"Renal failure (accumulation); cardiac block","bbw":"None","notes":""},{"id":"d56","name":"Suzetrigine","generic":"suzetrigine","cls":"Other","moa":"First-in-class selective NaV1.8 voltage-gated sodium channel inhibitor (peripheral nociceptors only); blocks pain signal transmission without CNS effects; no addiction potential","elim":"Hepatic (CYP3A4 substrate AND inducer)","elimtype":"hepatic","dx":["Acute Orofacial Pain","Postoperative Pain"],"lines":{"l1":"Moderate-to-severe acute pain in adults (FDA-approved Jan 2025)","l2":"","l3":"","adj":"Potential OFP role: postoperative orofacial pain (off-label)"},"doses":{"klasser":{"initial":"100 mg PO x1 loading dose","target":"50 mg PO q12h","max":"100 mg/day (after loading)","note":"Swallow whole; take without food; not studied beyond 14 days"},"okeson":{"initial":"100 mg PO x1","target":"50 mg q12h","max":"100 mg/day maintenance","note":""},"other":{"initial":"","target":"","max":"","note":"Dose reduce with moderate CYP3A4 inhibitors; contraindicated with strong CYP3A4 inhibitors"}},"ae":"Pruritus (~2%), nausea; no CNS effects (no sedation, euphoria, addiction); well tolerated","ci":"Strong CYP3A4 inhibitors (contraindicated); severe hepatic impairment (dose adjust)","bbw":"None","notes":"Brand: Journavx; FDA-approved Jan 30 2025 - first non-opioid analgesic in 20+ years"},{"id":"d57","name":"Acetaminophen","generic":"acetaminophen (paracetamol)","cls":"Other","moa":"Central COX inhibition (weak); endocannabinoid system modulation via AM404 metabolite; reduces descending serotonergic pathways","elim":"Hepatic (glucuronidation, sulfation; CYP2E1 to NAPQI toxic metabolite)","elimtype":"hepatic","dx":["Migraine - Acute","Tension-Type Headache","Acute Orofacial Pain","TMD - Myalgia"],"lines":{"l1":"Mild-moderate pain, migraine (first-line OTC), fever","l2":"","l3":"","adj":"Adjunct in multimodal analgesia"},"doses":{"klasser":{"initial":"500-650 mg PO","target":"500-1000 mg q4-6h","max":"4000 mg/day (healthy); 2000 mg/day (hepatic risk or alcohol use)","note":"Most effective as scheduled (not PRN); IV form 1000 mg q6h"},"okeson":{"initial":"650 mg PO","target":"650-1000 mg q4-6h","max":"4000 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Hepatotoxicity (excess doses or with alcohol); generally very safe at therapeutic doses","ci":"Severe hepatic disease; chronic alcohol use (reduce max to 2000 mg/day)","bbw":"Hepatotoxicity (OTC and Rx label warning)","notes":"Safest analgesic for mild pain; hepatotoxicity risk with overdose"},{"id":"d58","name":"Pilocarpine","generic":"pilocarpine HCl","cls":"Other","moa":"M3 (and M1) muscarinic receptor agonist at salivary and lacrimal glands; stimulates secretion","elim":"Hepatic (also plasma hydrolysis)","elimtype":"hepatic","dx":["Xerostomia / Hyposalivation","Sjogren Syndrome"],"lines":{"l1":"Xerostomia (Sjogren syndrome, radiation-induced)","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"5 mg TID with meals","target":"5 mg TID-QID","max":"30 mg/day","note":"Onset 20 min, peak 1 hr, duration 3-5 hr"},"okeson":{"initial":"5 mg TID","target":"5 mg TID-QID","max":"30 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Diaphoresis (most common, dose-dependent), nausea, flushing, urinary frequency, diarrhea, rhinitis, bradycardia","ci":"Uncontrolled asthma, narrow-angle glaucoma, acute iritis; cardiovascular disease; COPD","bbw":"None","notes":"FDA-approved for radiation-induced and Sjogren xerostomia"},{"id":"d59","name":"Cevimeline","generic":"cevimeline HCl","cls":"Other","moa":"M1 and M3 muscarinic agonist; increases salivary and lacrimal secretion; longer duration than pilocarpine","elim":"Hepatic (CYP2D6, CYP3A4)","elimtype":"hepatic","dx":["Xerostomia / Hyposalivation","Sjogren Syndrome"],"lines":{"l1":"Xerostomia in Sjogren syndrome","l2":"","l3":"","adj":""},"doses":{"klasser":{"initial":"30 mg TID with meals","target":"30 mg TID","max":"90 mg/day","note":"Longer duration than pilocarpine"},"okeson":{"initial":"30 mg TID","target":"30 mg TID","max":"90 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Diaphoresis, nausea, diarrhea, visual disturbance, urinary frequency","ci":"Uncontrolled asthma, narrow-angle glaucoma, acute iritis","bbw":"None","notes":""},{"id":"d60","name":"Clonidine","generic":"clonidine HCl","cls":"Other","moa":"Central alpha2-adrenergic agonist at locus coeruleus; reduces sympathetic outflow; spinal alpha2 agonism; reduces substance P; analgesia","elim":"Hepatic + Renal (50% unchanged)","elimtype":"renal","dx":["Sympathetically-Maintained Pain","Central Sensitization","Post-Traumatic Trigeminal Neuropathy (PTTN)"],"lines":{"l1":"Sympathetically-maintained pain","l2":"Central sensitization, opioid-sparing adjunct","l3":"","adj":"Hyperhidrosis, hyperadrenergic states"},"doses":{"klasser":{"initial":"0.1 mg BID","target":"0.1-0.3 mg BID","max":"0.9 mg/day","note":"Patch: 0.1-0.3 mg/24 hr weekly; must taper - rebound HTN on abrupt stop"},"okeson":{"initial":"0.1 mg BID","target":"0.1-0.2 mg BID","max":"0.6 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Sedation, dry mouth, hypotension, bradycardia, rebound HTN on abrupt withdrawal","ci":"Must taper (never stop abruptly); concurrent beta-blockers (severe bradycardia); severe cardiovascular disease","bbw":"None","notes":""},{"id":"d61","name":"Metoclopramide","generic":"metoclopramide HCl","cls":"Other","moa":"D2 receptor antagonist; reduces nausea/vomiting; prokinetic; direct anti-migraine effect via dopaminergic pathways","elim":"Renal (hepatic minor)","elimtype":"renal","dx":["Migraine - Acute","Status Migrainosus"],"lines":{"l1":"Nausea/vomiting adjunct in migraine; acute migraine abortive (IV in ED/clinic)","l2":"","l3":"","adj":"Antiemetic pretreatment before DHE"},"doses":{"klasser":{"initial":"10 mg PO/IV at onset","target":"10 mg PO/IV q6-8h","max":"40 mg/day","note":"IV 10 mg over 15 min for acute migraine - anti-migraine effect independent of antiemesis"},"okeson":{"initial":"10 mg PO/IV","target":"10 mg q6-8h","max":"40 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Somnolence, akathisia (restlessness - common), dystonic reactions, tardive dyskinesia (long-term)","ci":"Concurrent dopamine agonists; pheochromocytoma; GI obstruction; epilepsy","bbw":"Tardive dyskinesia with prolonged use (more than 12 weeks)","notes":"Give diphenhydramine 25 mg IV concurrently to prevent akathisia; limit to short-term use"},{"id":"d62","name":"Prochlorperazine","generic":"prochlorperazine maleate","cls":"Other","moa":"D2 receptor antagonist; antiemetic and anti-migraine; phenothiazine; also alpha1 and H1 antagonism","elim":"Hepatic","elimtype":"hepatic","dx":["Migraine - Acute","Status Migrainosus"],"lines":{"l1":"Acute migraine abortive with nausea (IV/IM/PR); status migrainosus (IV)","l2":"","l3":"","adj":"Antiemetic pretreatment before DHE"},"doses":{"klasser":{"initial":"5-10 mg IV/IM/PO; 25 mg PR","target":"10 mg IV over 15-30 min","max":"40 mg/day","note":"Always co-administer diphenhydramine 25 mg IV to prevent akathisia"},"okeson":{"initial":"10 mg IV/IM","target":"10 mg IV","max":"40 mg/day","note":""},"other":{"initial":"","target":"","max":"","note":""}},"ae":"Somnolence, akathisia, dystonic reactions, QTc prolongation, hypotension (IV), tardive dyskinesia","ci":"Coma/CNS depression, concurrent CNS depressants, bone marrow suppression, Parkinson disease","bbw":"None (tardive dyskinesia risk with prolonged use)","notes":"Potent IV anti-migraine; always co-administer diphenhydramine to prevent akathisia"}];
+
+// ── CONFIG ──────────────────────────────────────────────────────────────────
+var DRUG_KEY = 'ofp_v9';
+var SET_KEY = 'ofp_settings';
+var PW_KEY = 'ofp_admin_pw';
+var DEFAULT_PW = 'Sumia1994';
+var ALL_CLS = ['TCA','SNRI','SSRI','Anticonvulsant','Muscle Relaxant','Benzodiazepine','Triptans','Ditan','CGRP mAb','Gepant','Botulinum Toxin','Topical','Corticosteroid','Antifungal','Antihistamine','Beta-Blocker','NSAID','Ergotamine','Opioid','IV/Infusion','Other'];
+var ALL_DX = ['TMD - Myalgia','TMD - Arthralgia','TMD - Disc Displacement','TMD - Degenerative Joint Disease','Myofascial Pain','Bruxism / Sleep Bruxism','Masticatory Myospasm','Oromandibular Dystonia','Trigeminal Neuralgia (TN)','Glossopharyngeal Neuralgia','Postherpetic Neuralgia (PHN)','Burning Mouth Syndrome (BMS)','Persistent Idiopathic Facial Pain (PIFP)','Atypical Odontalgia','Post-Traumatic Trigeminal Neuropathy (PTTN)','Sympathetically-Maintained Pain','Migraine - Acute','Migraine - Prophylaxis','Chronic Migraine','Status Migrainosus','Tension-Type Headache','Cluster Headache - Acute','Cluster Headache - Prophylaxis','Hemicrania Continua','Paroxysmal Hemicrania','SUNCT / SUNA','Hypnic Headache','Primary Stabbing Headache','Medication Overuse Headache (MOH)','Idiopathic Intracranial Hypertension (IIH)','Giant Cell Arteritis','Oral Lichen Planus','Recurrent Aphthous Stomatitis','Oral Candidiasis','Angular Cheilitis','Xerostomia / Hyposalivation','Sjogren Syndrome','Fibromyalgia','Central Sensitization','Sleep Disturbance in Pain','Acute Orofacial Pain','Postoperative Pain'];
+
+// ── STATE ───────────────────────────────────────────────────────────────────
+var drugs = [];
+var expanded = {};
+var doseTabs = {};
+var activeFilter = 'All';
+var filterMode = 'cls';
+var adminMode = false;
+var editingId = null;
+
+// ── HELPERS ─────────────────────────────────────────────────────────────────
+function h(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function gv(id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; }
+function sv(id, v) { var e = document.getElementById(id); if (e) e.value = v || ''; }
+function getSetting(k, def) {
+  try { var s = JSON.parse(localStorage.getItem(SET_KEY) || '{}'); return s[k] || def; } catch(e) { return def; }
+}
+function getAllSettings() {
+  var def = {ref1:'Guideline',ref2:'Okeson',ref3:'Clinical/Other',h_lines:'Used for (by treatment line)',h_moa:'Mechanism of action',h_elim:'Elimination / Metabolism',h_dose:'Dosage by reference',h_ae:'Side effects',h_ci:'Absolute contraindications',h_notes:'Board notes',l1:'First-line',l2:'Second-line',l3:'Third-line',ladj:'Adjunct',sitename:'OFP Pharmacology',sitesub:'Orofacial Pain Pharmacology Reference',c_accent:'#1D9E75',c_navy:'#1a2744',c_l1:'#14532d',c_l2:'#1e3a8a',c_l3:'#4c1d95',c_ladj:'#713f12'};
+  try { var s = JSON.parse(localStorage.getItem(SET_KEY) || '{}'); for (var k in def) { if (!s[k]) s[k] = def[k]; } return s; } catch(e) { return def; }
+}
+function getPw() { return localStorage.getItem(PW_KEY) || DEFAULT_PW; }
+function showToast(msg, color) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = color || '#1a2744';
+  t.style.opacity = '1';
+  t.style.transform = 'translateY(0)';
+  setTimeout(function() { t.style.opacity = '0'; t.style.transform = 'translateY(10px)'; }, 2500);
+}
+
+// ── DATA ────────────────────────────────────────────────────────────────────
+function loadDrugs() {
+  try {
+    var r = localStorage.getItem(DRUG_KEY);
+    if (r) { var p = JSON.parse(r); if (p && p.length) { drugs = p; return; } }
+  } catch(e) {}
+  drugs = JSON.parse(JSON.stringify(DRUGS));
+  saveDrugs();
+}
+function saveDrugs() {
+  try { localStorage.setItem(DRUG_KEY, JSON.stringify(drugs)); } catch(e) {}
+}
+
+// ── AUTH ────────────────────────────────────────────────────────────────────
+function clickEditBtn() {
+  if (adminMode) { exitAdmin(); return; }
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwError').style.display = 'none';
+  document.getElementById('pwOverlay').classList.add('on');
+  setTimeout(function() { document.getElementById('pwInput').focus(); }, 100);
+}
+function doLogin() {
+  var pw = gv('pwInput');
+  if (pw === getPw()) {
+    adminMode = true;
+    closePanel('pwOverlay');
+    var btn = document.getElementById('editBtn');
+    btn.textContent = '\uD83D\uDD13 Admin ON';
+    btn.style.borderColor = '#1D9E75';
+    btn.style.color = '#9FE1CB';
+    document.getElementById('adminBar').classList.add('on');
+    doRender();
+    showToast('Admin mode enabled', '#065f46');
+  } else {
+    document.getElementById('pwError').style.display = 'block';
+    sv('pwInput', '');
+    document.getElementById('pwInput').focus();
+  }
+}
+function exitAdmin() {
+  adminMode = false;
+  var btn = document.getElementById('editBtn');
+  btn.textContent = '\uD83D\uDD12 Edit mode';
+  btn.style.borderColor = '';
+  btn.style.color = '';
+  document.getElementById('adminBar').classList.remove('on');
+  doRender();
+  showToast('Admin mode off');
+}
+
+// ── OVERLAYS ─────────────────────────────────────────────────────────────────
+function overlayClick(e, id) {
+  if (e.target === document.getElementById(id)) closePanel(id);
+}
+function closePanel(id) {
+  document.getElementById(id).classList.remove('on');
+  document.body.style.overflow = '';
+}
+function openOverlay(id) {
+  document.getElementById(id).classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+
+// ── FILTER TABS ──────────────────────────────────────────────────────────────
+function switchTab(mode) {
+  filterMode = mode;
+  activeFilter = 'All';
+  document.getElementById('tab-cls').classList.toggle('active', mode === 'cls');
+  document.getElementById('tab-dx').classList.toggle('active', mode === 'dx');
+  doRender();
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function doRender() {
+  applyTheme();
+  buildFilterList();
+  renderGrid();
+}
+
+function buildFilterList() {
+  var counts = {};
+  var items;
+  if (filterMode === 'cls') {
+    drugs.forEach(function(d) { counts[d.cls] = (counts[d.cls] || 0) + 1; });
+    items = ['All'].concat(ALL_CLS.filter(function(c) { return counts[c]; }));
+  } else {
+    drugs.forEach(function(d) { (d.dx || []).forEach(function(dx) { counts[dx] = (counts[dx] || 0) + 1; }); });
+    items = ['All'].concat(ALL_DX.filter(function(dx) { return counts[dx]; }));
+  }
+  var html = '';
+  items.forEach(function(item) {
+    var n = item === 'All' ? drugs.length : (counts[item] || 0);
+    var active = activeFilter === item ? ' active' : '';
+    var safe = item.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    html += '<button class="filter-btn' + active + '" onclick="setFilter(\'' + safe + '\')">';
+    html += '<span style="flex:1;text-align:left">' + h(item) + '</span>';
+    html += '<span class="filter-count">' + n + '</span>';
+    html += '</button>';
+  });
+  document.getElementById('filterList').innerHTML = html;
+  document.getElementById('statTotal').textContent = drugs.length;
+  document.getElementById('statNoted').textContent = drugs.filter(function(d) { return d.notes && d.notes.trim(); }).length;
+}
+
+function setFilter(f) {
+  activeFilter = f;
+  doRender();
+}
+
+function renderGrid() {
+  var q = document.getElementById('search').value.toLowerCase().trim();
+  var s = getAllSettings();
+  var filtered = drugs.filter(function(d) {
+    if (activeFilter !== 'All') {
+      if (filterMode === 'cls' && d.cls !== activeFilter) return false;
+      if (filterMode === 'dx' && (d.dx || []).indexOf(activeFilter) === -1) return false;
+    }
+    if (q) {
+      var hay = [d.name, d.generic, d.cls, d.moa, d.ae, d.ci, d.notes, (d.dx || []).join(' '), d.lines.l1, d.lines.l2, d.lines.l3, d.lines.adj].join(' ').toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('resultCount').textContent = filtered.length + ' of ' + drugs.length + ' medications' + (activeFilter !== 'All' ? ' \u00b7 ' + activeFilter : '');
+
+  if (!filtered.length) {
+    document.getElementById('drugGrid').innerHTML = '<div style="text-align:center;padding:3rem;color:#888"><div style="font-size:36px">&#128528;</div><div>No results found</div></div>';
+    return;
+  }
+
+  var html = '';
+  filtered.forEach(function(d) {
+    var id = d.id;
+    var isOpen = !!expanded[id];
+    var dt = doseTabs[id] || 'klasser';
+
+    var dxHtml = '';
+    (d.dx || []).slice(0, 4).forEach(function(dx) { dxHtml += '<span class="dx-pill">' + h(dx) + '</span>'; });
+    if ((d.dx || []).length > 4) dxHtml += '<span class="dx-pill">+' + ((d.dx || []).length - 4) + '</span>';
+
+    html += '<div class="card' + (isOpen ? ' open' : '') + '" id="card_' + id + '" onclick="toggleCard(\'' + id + '\',event)">';
+    html += '<div class="card-head">';
+    html += '<div><div class="drug-name">' + h(d.name) + '</div><div class="drug-generic">' + h(d.generic) + '</div></div>';
+    html += '<div style="display:flex;align-items:center;gap:6px"><span class="cls-badge">' + h(d.cls) + '</span><span class="chev">&#9660;</span></div>';
+    html += '</div>';
+    if (dxHtml) html += '<div class="dx-row">' + dxHtml + '</div>';
+
+    if (isOpen) {
+      html += '<div class="detail">';
+      // Lines
+      html += '<div class="sec"><div class="sec-label">' + h(s.h_lines) + '</div>';
+      if (d.lines.l1) html += '<div class="line-row"><span class="ltag l1">' + h(s.l1) + '</span><span class="lval">' + h(d.lines.l1) + '</span></div>';
+      if (d.lines.l2) html += '<div class="line-row"><span class="ltag l2">' + h(s.l2) + '</span><span class="lval">' + h(d.lines.l2) + '</span></div>';
+      if (d.lines.l3) html += '<div class="line-row"><span class="ltag l3">' + h(s.l3) + '</span><span class="lval">' + h(d.lines.l3) + '</span></div>';
+      if (d.lines.adj) html += '<div class="line-row"><span class="ltag ladj">' + h(s.ladj) + '</span><span class="lval">' + h(d.lines.adj) + '</span></div>';
+      html += '</div>';
+      // MOA
+      html += '<div class="sec"><div class="sec-label">' + h(s.h_moa) + '</div><div class="body-text">' + h(d.moa || '-') + '</div></div>';
+      // Elim
+      var elimLabels = {hepatic:'Hepatic',renal:'Renal',local:'Local',other:'Other'};
+      html += '<div class="sec"><div class="sec-label">' + h(s.h_elim) + '</div><div class="body-text">' + h(elimLabels[d.elimtype] || 'Other') + ' \u2014 ' + h(d.elim || '-') + '</div></div>';
+      // Dose
+      var ds = d.doses[dt] || {};
+      html += '<div class="sec" onclick="event.stopPropagation()"><div class="sec-label">' + h(s.h_dose) + '</div>';
+      html += '<div class="dose-tabs">';
+      html += '<button class="dtab' + (dt==='klasser'?' active':'') + '" onclick="setDoseTab(\'' + id + '\',\'klasser\')">' + h(s.ref1) + '</button>';
+      html += '<button class="dtab' + (dt==='okeson'?' active':'') + '" onclick="setDoseTab(\'' + id + '\',\'okeson\')">' + h(s.ref2) + '</button>';
+      var oth = d.doses.other;
+      if (oth && (oth.initial || oth.target || oth.max)) {
+        html += '<button class="dtab' + (dt==='other'?' active':'') + '" onclick="setDoseTab(\'' + id + '\',\'other\')">' + h(s.ref3) + '</button>';
+      }
+      html += '</div>';
+      if (ds.initial || ds.target || ds.max) {
+        html += '<div class="dose-grid">';
+        if (ds.initial) html += '<span class="dose-label">Initial</span><span class="dose-val">' + h(ds.initial) + '</span>';
+        if (ds.target) html += '<span class="dose-label">Target</span><span class="dose-val">' + h(ds.target) + '</span>';
+        if (ds.max) html += '<span class="dose-label">Max/day</span><span class="dose-val">' + h(ds.max) + '</span>';
+        html += '</div>';
+        if (ds.note) html += '<div class="dose-note">' + h(ds.note) + '</div>';
+      } else {
+        html += '<span style="font-size:12px;color:#888;font-style:italic">Not specified</span>';
+      }
+      html += '</div>';
+      // AE
+      html += '<div class="sec"><div class="sec-label">' + h(s.h_ae) + '</div><div class="body-text">' + h(d.ae) + '</div></div>';
+      // CI
+      html += '<div class="sec"><div class="sec-label">' + h(s.h_ci) + '</div><div class="ci-box">' + h(d.ci) + '</div>';
+      if (d.bbw && d.bbw !== 'None') html += '<div class="bbw">&#9888; Black box: ' + h(d.bbw) + '</div>';
+      html += '</div>';
+      // Notes
+      html += '<div class="note-area" onclick="event.stopPropagation()">';
+      html += '<div class="sec-label" style="margin-bottom:6px">' + h(s.h_notes) + '</div>';
+      html += '<textarea id="note_' + id + '" placeholder="Your study notes...">' + h(d.notes || '') + '</textarea>';
+      html += '<div class="note-btns"><button class="btn btn-green" onclick="saveNote(\'' + id + '\')">&#10003; Save note</button>';
+      if (adminMode) {
+        html += '<button class="btn btn-plain" onclick="openDrugPanel(\'' + id + '\')">&#9998; Edit</button>';
+        html += '<button class="btn btn-red" onclick="askDelete(\'' + id + '\')">&#128465;</button>';
+      }
+      html += '</div></div>';
+      html += '</div>'; // detail
+    }
+    html += '</div>'; // card
+  });
+  document.getElementById('drugGrid').innerHTML = html;
+}
+
+function toggleCard(id, e) {
+  if (e.target.tagName === 'BUTTON' || e.target.tagName === 'TEXTAREA') return;
+  expanded[id] = !expanded[id];
+  doRender();
+}
+function setDoseTab(id, tab) {
+  event.stopPropagation();
+  doseTabs[id] = tab;
+  doRender();
+}
+function saveNote(id) {
+  var ta = document.getElementById('note_' + id);
+  if (!ta) return;
+  var d = drugs.find(function(x) { return x.id === id; });
+  if (d) { d.notes = ta.value; saveDrugs(); showToast('Note saved', '#065f46'); }
+}
+
+// ── DRUG FORM ─────────────────────────────────────────────────────────────────
+function openDrugPanel(id) {
+  if (!adminMode) return;
+  editingId = id;
+  var s = getAllSettings();
+  document.getElementById('ref1lbl').textContent = s.ref1;
+  document.getElementById('ref2lbl').textContent = s.ref2;
+  document.getElementById('ref3lbl').textContent = s.ref3;
+  document.getElementById('panelTitle').textContent = id ? 'Edit drug' : 'Add drug';
+  var fields = ['f-name','f-generic','f-moa','f-elim','f-dx','f-l1','f-l2','f-l3','f-ladj','f-dk-i','f-dk-t','f-dk-m','f-dk-n','f-do-i','f-do-t','f-do-m','f-do-n','f-doth-i','f-doth-t','f-doth-m','f-doth-n','f-ae','f-ci','f-bbw','f-notes'];
+  fields.forEach(function(f) { sv(f, ''); });
+  sv('f-cls', 'TCA');
+  sv('f-elimtype', 'hepatic');
+  if (id) {
+    var d = drugs.find(function(x) { return x.id === id; });
+    if (!d) return;
+    sv('f-name', d.name); sv('f-generic', d.generic); sv('f-cls', d.cls);
+    sv('f-moa', d.moa); sv('f-elim', d.elim); sv('f-elimtype', d.elimtype);
+    sv('f-dx', (d.dx || []).join(', '));
+    sv('f-l1', d.lines.l1); sv('f-l2', d.lines.l2); sv('f-l3', d.lines.l3); sv('f-ladj', d.lines.adj);
+    var km = {i:'initial',t:'target',m:'max',n:'note'};
+    ['i','t','m','n'].forEach(function(k) {
+      sv('f-dk-' + k, (d.doses.klasser || {})[km[k]]);
+      sv('f-do-' + k, (d.doses.okeson || {})[km[k]]);
+      sv('f-doth-' + k, (d.doses.other || {})[km[k]]);
+    });
+    sv('f-ae', d.ae); sv('f-ci', d.ci);
+    sv('f-bbw', d.bbw === 'None' ? '' : d.bbw);
+    sv('f-notes', d.notes);
+  }
+  openOverlay('drugOverlay');
+}
+
+function saveDrug() {
+  var name = gv('f-name');
+  if (!name) { showToast('Drug name required', '#7f1d1d'); return; }
+  var drug = {
+    id: editingId || (Date.now().toString(36)),
+    name: name, generic: gv('f-generic'),
+    cls: gv('f-cls'), moa: gv('f-moa'), elim: gv('f-elim'), elimtype: gv('f-elimtype'),
+    dx: gv('f-dx').split(',').map(function(x) { return x.trim(); }).filter(Boolean),
+    lines: {l1:gv('f-l1'), l2:gv('f-l2'), l3:gv('f-l3'), adj:gv('f-ladj')},
+    doses: {
+      klasser: {initial:gv('f-dk-i'), target:gv('f-dk-t'), max:gv('f-dk-m'), note:gv('f-dk-n')},
+      okeson:  {initial:gv('f-do-i'), target:gv('f-do-t'), max:gv('f-do-m'), note:gv('f-do-n')},
+      other:   {initial:gv('f-doth-i'), target:gv('f-doth-t'), max:gv('f-doth-m'), note:gv('f-doth-n')}
+    },
+    ae: gv('f-ae'), ci: gv('f-ci'), bbw: gv('f-bbw') || 'None', notes: gv('f-notes')
+  };
+  if (editingId) {
+    var idx = drugs.findIndex(function(x) { return x.id === editingId; });
+    if (idx > -1) drugs[idx] = drug;
+  } else {
+    drugs.push(drug);
+  }
+  saveDrugs();
+  closePanel('drugOverlay');
+  doRender();
+  showToast((editingId ? 'Updated ' : 'Added ') + drug.name, '#065f46');
+}
+
+// ── DELETE ────────────────────────────────────────────────────────────────────
+function askDelete(id) {
+  var d = drugs.find(function(x) { return x.id === id; });
+  if (!d) return;
+  document.getElementById('confirmTitle').textContent = 'Delete ' + d.name + '?';
+  document.getElementById('confirmMsg').textContent = 'This permanently removes it. Cannot be undone.';
+  document.getElementById('confirmOkBtn').onclick = function() {
+    drugs = drugs.filter(function(x) { return x.id !== id; });
+    saveDrugs();
+    closePanel('confirmOverlay');
+    doRender();
+    showToast('Deleted', '#7f1d1d');
+  };
+  openOverlay('confirmOverlay');
+}
+
+// ── SETTINGS ───────────────────────────────────────────────────────────────────
+function openSettingsPanel() {
+  if (!adminMode) return;
+  var s = getAllSettings();
+  sv('s-ref1', s.ref1); sv('s-ref2', s.ref2); sv('s-ref3', s.ref3);
+  sv('s-sitename', s.sitename); sv('s-sitesub', s.sitesub);
+  sv('s-h-lines', s.h_lines); sv('s-h-moa', s.h_moa); sv('s-h-elim', s.h_elim);
+  sv('s-h-dose', s.h_dose); sv('s-h-ae', s.h_ae); sv('s-h-ci', s.h_ci); sv('s-h-notes', s.h_notes);
+  sv('s-l1', s.l1); sv('s-l2', s.l2); sv('s-l3', s.l3); sv('s-ladj', s.ladj);
+  ['accent','navy','l1c','l2c','l3c','ladjc'].forEach(function(k) {
+    var sk = k.replace('c','').replace(/c$/,'');
+    var key = 'c_' + (k === 'accent' ? 'accent' : k === 'navy' ? 'navy' : k.replace('c',''));
+    var val = s[key] || '#000000';
+    var cp = document.getElementById('c-' + k); if (cp) cp.value = val;
+    var ct = document.getElementById('ct-' + k); if (ct) ct.value = val;
+  });
+  openOverlay('settingsOverlay');
+}
+
+function saveSettings() {
+  var s = getAllSettings();
+  s.ref1 = gv('s-ref1') || 'Guideline';
+  s.ref2 = gv('s-ref2') || 'Okeson';
+  s.ref3 = gv('s-ref3') || 'Clinical/Other';
+  s.sitename = gv('s-sitename') || 'OFP Pharmacology';
+  s.sitesub = gv('s-sitesub') || 'Orofacial Pain Pharmacology Reference';
+  s.h_lines = gv('s-h-lines') || 'Used for (by treatment line)';
+  s.h_moa = gv('s-h-moa') || 'Mechanism of action';
+  s.h_elim = gv('s-h-elim') || 'Elimination / Metabolism';
+  s.h_dose = gv('s-h-dose') || 'Dosage by reference';
+  s.h_ae = gv('s-h-ae') || 'Side effects';
+  s.h_ci = gv('s-h-ci') || 'Absolute contraindications';
+  s.h_notes = gv('s-h-notes') || 'Board notes';
+  s.l1 = gv('s-l1') || 'First-line';
+  s.l2 = gv('s-l2') || 'Second-line';
+  s.l3 = gv('s-l3') || 'Third-line';
+  s.ladj = gv('s-ladj') || 'Adjunct';
+  var cp = document.getElementById('c-accent'); if (cp) s.c_accent = cp.value;
+  cp = document.getElementById('c-navy'); if (cp) s.c_navy = cp.value;
+  cp = document.getElementById('c-l1c'); if (cp) s.c_l1 = cp.value;
+  cp = document.getElementById('c-l2c'); if (cp) s.c_l2 = cp.value;
+  cp = document.getElementById('c-l3c'); if (cp) s.c_l3 = cp.value;
+  cp = document.getElementById('c-ladjc'); if (cp) s.c_ladj = cp.value;
+  localStorage.setItem(SET_KEY, JSON.stringify(s));
+  closePanel('settingsOverlay');
+  doRender();
+  showToast('Settings saved', '#065f46');
+}
+
+function applyTheme() {
+  var s = getAllSettings();
+  document.getElementById('site-name').textContent = s.sitename;
+  document.getElementById('site-sub').textContent = s.sitesub;
+  var style = document.getElementById('dynamic-css');
+  if (!style) { style = document.createElement('style'); style.id = 'dynamic-css'; document.head.appendChild(style); }
+  style.textContent = '.header{background:' + s.c_navy + '}.l1{color:' + s.c_l1 + '}.l2{color:' + s.c_l2 + '}.l3{color:' + s.c_l3 + '}.ladj{color:' + s.c_ladj + '}.btn-green{background:' + s.c_accent + '}.filter-btn.active{color:' + s.c_accent + '}.cls-badge{color:' + s.c_accent + '}.ftab.active{background:' + s.c_navy + '}';
+}
+
+function syncColor(cpId, ctId) {
+  var v = document.getElementById(cpId).value;
+  document.getElementById(ctId).value = v;
+}
+function syncColorText(ctId, cpId) {
+  var v = document.getElementById(ctId).value.trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) document.getElementById(cpId).value = v;
+}
+
+function changePassword() {
+  var cur = gv('s-pw-cur'), nw = gv('s-pw-new'), con = gv('s-pw-con');
+  if (cur !== getPw()) { showToast('Current password incorrect', '#7f1d1d'); return; }
+  if (!nw) { showToast('New password cannot be empty', '#7f1d1d'); return; }
+  if (nw !== con) { showToast('Passwords do not match', '#7f1d1d'); return; }
+  localStorage.setItem(PW_KEY, nw);
+  sv('s-pw-cur', ''); sv('s-pw-new', ''); sv('s-pw-con', '');
+  showToast('Password changed', '#065f46');
+}
+
+// ── EXPORT / IMPORT ──────────────────────────────────────────────────────────
+function doExport() {
+  var b = new Blob([JSON.stringify(drugs, null, 2)], {type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = 'ofp-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  showToast('Exported ' + drugs.length + ' drugs', '#065f46');
+}
+function doImport(e) {
+  var file = e.target.files[0]; if (!file) return;
+  var r = new FileReader();
+  r.onload = function(ev) {
+    try {
+      var p = JSON.parse(ev.target.result);
+      if (!Array.isArray(p)) throw new Error('Invalid format');
+      document.getElementById('confirmTitle').textContent = 'Import ' + p.length + ' drugs?';
+      document.getElementById('confirmMsg').textContent = 'This replaces your current ' + drugs.length + ' drugs. Export a backup first if needed.';
+      document.getElementById('confirmOkBtn').onclick = function() {
+        drugs = p; saveDrugs(); closePanel('confirmOverlay'); doRender();
+        showToast('Imported ' + p.length + ' drugs', '#065f46');
+      };
+      openOverlay('confirmOverlay');
+    } catch(err) { showToast('Import failed: ' + err.message, '#7f1d1d'); }
+  };
+  r.readAsText(file);
+  e.target.value = '';
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadDrugs();
+doRender();
+</script>
+</body>
+</html>
